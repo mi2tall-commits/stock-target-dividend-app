@@ -87,42 +87,49 @@
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #07080B; }
     ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+  
+    /* Hide scrollbar for tabs on mobile */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
   </style>
 </head>
 <body class="selection:bg-blue-600 selection:text-white">
 
-  <!-- 1. TERMINAL APP HEADER -->
-  <header class="sticky top-0 z-30 terminal-header px-4 lg:px-8 py-3 flex items-center justify-between shadow-xl">
-    <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-600/30 ring-1 ring-white/20">
-        <i data-lucide="trending-up" class="w-5 h-5 text-white"></i>
+    <!-- 1. TERMINAL APP HEADER (MOBILE 100% PERFECT FIT & NO OVERFLOW) -->
+  <header class="sticky top-0 z-30 terminal-header px-3.5 sm:px-6 lg:px-8 py-2.5 sm:py-3 pt-[calc(0.65rem+env(safe-area-inset-top))] flex items-center justify-between shadow-xl border-b border-white/10 w-full overflow-hidden">
+    
+    <!-- Left: Brand / Title -->
+    <div class="flex items-center space-x-2.5 min-w-0">
+      <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-600/30 ring-1 ring-white/20 shrink-0">
+        <i data-lucide="trending-up" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
       </div>
-      <div>
+      <div class="min-w-0">
         <div class="flex items-center space-x-2">
-          <h1 class="font-extrabold text-base sm:text-lg text-white tracking-tight">목표가 매도 & 배당 캘린더</h1>
-          <span class="bg-emerald-500/20 text-emerald-400 text-[11px] px-2 py-0.5 rounded-full border border-emerald-500/30 font-bold">PWA 독립 실행</span>
+          <h1 class="font-extrabold text-sm sm:text-base text-white tracking-tight truncate">목표가 매도 & 배당</h1>
+          <span class="hidden sm:inline-flex bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 rounded-full border border-emerald-500/30 font-bold shrink-0">PWA 독립 실행</span>
         </div>
-        <p class="text-[11px] text-slate-400 hidden sm:block">내 평단가 탈출 전략 & 1차/2차 분할 익절 대시보드</p>
+        <p class="text-[10px] text-slate-400 hidden sm:block truncate">내 평단가 탈출 전략 & 분할 익절 대시보드</p>
       </div>
     </div>
 
-    <!-- Actions -->
-    <div class="flex items-center space-x-2">
-      <button id="btn-refresh-price" onclick="refreshAllPrices()" class="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-[#141A24] hover:bg-[#1E2533] text-slate-200 rounded-lg border border-white/10 transition shadow-sm active:scale-95">
+    <!-- Right: Compact Action Buttons -->
+    <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+      <button id="btn-refresh-price" onclick="refreshAllPrices()" title="실시간 시세 갱신" class="flex items-center space-x-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-semibold bg-[#141A24] hover:bg-[#1E2533] text-slate-200 rounded-xl border border-white/10 transition shadow-sm active:scale-95">
         <i id="icon-refresh" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-blue-400"></i>
-        <span class="hidden sm:inline">실시간 시세 갱신</span>
-        <span class="sm:hidden">갱신</span>
+        <span class="hidden md:inline text-[11px]">시세 갱신</span>
       </button>
 
-      <button onclick="openStockModal()" class="flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-extrabold bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-lg shadow-lg shadow-blue-600/30 transition active:scale-95">
-        <i data-lucide="plus" class="w-4 h-4"></i>
-        <span>종목 추가</span>
+      <button onclick="openStockModal()" class="flex items-center space-x-1 px-2.5 sm:px-3.5 py-1.5 text-xs font-extrabold bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl shadow-lg shadow-blue-600/30 transition active:scale-95">
+        <i data-lucide="plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+        <span class="text-xs">종목 추가</span>
       </button>
 
-      <button onclick="openBackupModal()" title="데이터 백업 & 복원" class="p-2 text-slate-400 hover:text-white hover:bg-[#141A24] rounded-lg border border-white/5 transition">
-        <i data-lucide="database" class="w-4 h-4"></i>
+      <button onclick="openBackupModal()" title="데이터 백업 & 복원" class="p-2 text-slate-400 hover:text-white hover:bg-[#141A24] rounded-xl border border-white/5 transition">
+        <i data-lucide="database" class="w-3.5 h-3.5"></i>
       </button>
     </div>
+
   </header>
 
   <!-- 2. MAIN DASHBOARD STAGE -->
@@ -184,34 +191,36 @@
 
     </section>
 
-    <!-- 2-2. NAVIGATION TAB BAR -->
-    <div class="flex items-center justify-between border-b border-white/10 pb-0">
-      <div class="flex space-x-6">
-        <button id="tab-btn-stocks" onclick="switchTab('stocks')" class="nav-tab-btn active text-sm flex items-center space-x-2">
-          <i data-lucide="crosshair" class="w-4 h-4"></i>
-          <span>보유 종목 & 목표가</span>
-        </button>
-        <button id="tab-btn-watchlist" onclick="switchTab('watchlist')" class="nav-tab-btn text-sm flex items-center space-x-2">
-          <i data-lucide="eye" class="w-4 h-4"></i>
-          <span>관심 종목</span>
-        </button>
-        <button id="tab-btn-dividend" onclick="switchTab('dividend')" class="nav-tab-btn text-sm flex items-center space-x-2">
-          <i data-lucide="calendar" class="w-4 h-4"></i>
-          <span>배당금 캘린더</span>
-        </button>
-        <button id="tab-btn-journal" onclick="switchTab('journal')" class="nav-tab-btn text-sm flex items-center space-x-2">
-          <i data-lucide="book-open" class="w-4 h-4"></i>
-          <span>매매 복기 일지</span>
-        </button>
-      </div>
+        <!-- 2-2. NAVIGATION TAB BAR (HORIZONTAL SCROLLABLE ON MOBILE) -->
+    <div class="border-b border-white/10 pb-0">
+      <div class="flex items-center justify-between">
+        <div class="flex space-x-4 sm:space-x-6 overflow-x-auto no-scrollbar scroll-smooth w-full">
+          <button id="tab-btn-stocks" onclick="switchTab('stocks')" class="nav-tab-btn active text-xs sm:text-sm flex items-center space-x-1.5 shrink-0">
+            <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
+            <span>보유 종목 & 목표가</span>
+          </button>
+          <button id="tab-btn-watchlist" onclick="switchTab('watchlist')" class="nav-tab-btn text-xs sm:text-sm flex items-center space-x-1.5 shrink-0">
+            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+            <span>관심 종목</span>
+          </button>
+          <button id="tab-btn-dividend" onclick="switchTab('dividend')" class="nav-tab-btn text-xs sm:text-sm flex items-center space-x-1.5 shrink-0">
+            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+            <span>배당금 캘린더</span>
+          </button>
+          <button id="tab-btn-journal" onclick="switchTab('journal')" class="nav-tab-btn text-xs sm:text-sm flex items-center space-x-1.5 shrink-0">
+            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+            <span>매매 복기 일지</span>
+          </button>
+        </div>
 
-      <div class="hidden sm:flex items-center space-x-2 mb-2">
-        <button onclick="openWatchlistModal()" class="px-2.5 py-1 text-xs font-bold text-slate-300 bg-[#141A24] hover:bg-[#1E2533] rounded-lg border border-white/10 transition">
-          + 관심종목 등록
-        </button>
-        <button onclick="openJournalModal()" class="px-2.5 py-1 text-xs font-bold text-slate-300 bg-[#141A24] hover:bg-[#1E2533] rounded-lg border border-white/10 transition">
-          + 매매 메모
-        </button>
+        <div class="hidden md:flex items-center space-x-2 mb-2 shrink-0 ml-4">
+          <button onclick="openWatchlistModal()" class="px-2.5 py-1 text-xs font-bold text-slate-300 bg-[#141A24] hover:bg-[#1E2533] rounded-lg border border-white/10 transition">
+            + 관심종목
+          </button>
+          <button onclick="openJournalModal()" class="px-2.5 py-1 text-xs font-bold text-slate-300 bg-[#141A24] hover:bg-[#1E2533] rounded-lg border border-white/10 transition">
+            + 매매 메모
+          </button>
+        </div>
       </div>
     </div>
 
