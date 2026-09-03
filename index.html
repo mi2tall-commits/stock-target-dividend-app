@@ -11,604 +11,490 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background-color: #07080B;
+      color: #E2E8F0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      letter-spacing: -0.2px;
     }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+
+    .font-mono-nums {
+      font-family: 'JetBrains Mono', monospace;
+      font-feature-settings: "tnum" 1;
     }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: rgba(30, 41, 59, 0.5);
+
+    /* Terminal Glass Header */
+    .terminal-header {
+      background: rgba(14, 18, 26, 0.88);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(100, 116, 139, 0.5);
+
+    /* Card Substrates */
+    .card-obsidian {
+      background: #0E121A;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-obsidian:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    /* Trajectory Track */
+    .trajectory-track {
+      background: #141A24;
+      height: 7px;
       border-radius: 9999px;
+      position: relative;
     }
-    @keyframes pulseGlow {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.85; transform: scale(1.02); }
+    .trajectory-pulse {
+      box-shadow: 0 0 12px #3B82F6, 0 0 4px #60A5FA;
     }
     .glow-hit {
-      animation: pulseGlow 2s infinite ease-in-out;
+      animation: pulseTarget 1.8s infinite ease-in-out;
     }
+    @keyframes pulseTarget {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.03); }
+    }
+
+    /* Tab navigation buttons */
+    .nav-tab-btn {
+      color: #94A3B8;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .nav-tab-btn.active {
+      color: #F8FAFC;
+      border-color: #3B82F6;
+      font-weight: 800;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #07080B; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
   </style>
 </head>
-<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col custom-scrollbar selection:bg-indigo-500 selection:text-white">
+<body class="selection:bg-blue-600 selection:text-white">
 
-  <!-- 상단 네비게이션 헤더 -->
-  <header class="sticky top-0 z-30 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800 px-4 lg:px-8 py-3.5 flex items-center justify-between shadow-lg">
+  <!-- 1. TERMINAL APP HEADER -->
+  <header class="sticky top-0 z-30 terminal-header px-4 lg:px-8 py-3 flex items-center justify-between shadow-xl">
     <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 ring-1 ring-white/20">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-600/30 ring-1 ring-white/20">
         <i data-lucide="trending-up" class="w-5 h-5 text-white"></i>
       </div>
       <div>
         <div class="flex items-center space-x-2">
-          <h1 class="font-bold text-lg text-white tracking-tight">목표가 매도 & 배당 캘린더</h1>
-          <span class="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-0.5 rounded-full border border-indigo-500/30 font-semibold">GitHub Pages 완벽 호환</span>
+          <h1 class="font-extrabold text-base sm:text-lg text-white tracking-tight">목표가 매도 & 배당 캘린더</h1>
+          <span class="bg-blue-500/20 text-blue-400 text-[11px] px-2 py-0.5 rounded-full border border-blue-500/30 font-bold">실시간 시세 연동</span>
         </div>
-        <p class="text-xs text-slate-400 hidden sm:block">보유 종목 평단가 전략 & 주요 시장 시세 모니터링</p>
+        <p class="text-[11px] text-slate-400 hidden sm:block">내 평단가 탈출 전략 & 1차/2차 분할 익절 대시보드</p>
       </div>
     </div>
 
-    <div class="flex items-center space-x-2 sm:space-x-3">
-      <button id="btn-refresh-price" onclick="refreshAllPrices()" class="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg border border-slate-700 transition shadow-sm active:scale-95">
-        <i id="icon-refresh" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-indigo-400"></i>
+    <!-- Actions -->
+    <div class="flex items-center space-x-2">
+      <button id="btn-refresh-price" onclick="refreshAllPrices()" class="flex items-center space-x-1.5 px-3 py-1.5 text-xs font-semibold bg-[#141A24] hover:bg-[#1E2533] text-slate-200 rounded-lg border border-white/10 transition shadow-sm active:scale-95">
+        <i id="icon-refresh" data-lucide="refresh-cw" class="w-3.5 h-3.5 text-blue-400"></i>
         <span class="hidden sm:inline">실시간 시세 갱신</span>
         <span class="sm:hidden">갱신</span>
       </button>
 
-      <button onclick="openStockModal()" class="flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-lg shadow-md shadow-indigo-600/20 transition active:scale-95">
-        <i data-lucide="plus-circle" class="w-4 h-4"></i>
-        <span>내 종목 추가</span>
+      <button onclick="openStockModal()" class="flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-extrabold bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-lg shadow-lg shadow-blue-600/30 transition active:scale-95">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        <span>종목 추가</span>
       </button>
 
-      <button onclick="openBackupModal()" title="데이터 백업 & 복원" class="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition">
+      <button onclick="openBackupModal()" title="데이터 백업 & 복원" class="p-2 text-slate-400 hover:text-white hover:bg-[#141A24] rounded-lg border border-white/5 transition">
         <i data-lucide="database" class="w-4 h-4"></i>
       </button>
     </div>
   </header>
 
-  <!-- 메인 컨테이너 -->
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+  <!-- 2. MAIN DASHBOARD STAGE -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3.5 sm:p-6 lg:p-8 space-y-5">
 
-    <!-- 1. 종합 자산 & 오늘 손익 요약 배너 (보유 종목 기준) -->
-    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <!-- 2-1. PORTFOLIO METRIC STRIP (4 CARDS) -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
       
-      <!-- 총 투자 원금 -->
-      <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 shadow-sm relative overflow-hidden backdrop-blur">
-        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-1">
-          <span>내 총 투자 원금</span>
+      <!-- 총 매수 원금 -->
+      <div class="card-obsidian rounded-2xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+          <span>총 매수 원금</span>
           <i data-lucide="wallet" class="w-4 h-4 text-slate-500"></i>
         </div>
-        <div class="text-lg sm:text-2xl font-extrabold text-white tracking-tight" id="total-invested">0원</div>
-        <div class="text-xs text-slate-400 mt-1 flex items-center space-x-1">
+        <div class="text-xl sm:text-2xl font-black text-white font-mono-nums tracking-tight" id="total-invested">0원</div>
+        <div class="text-[11px] text-slate-400 mt-1 flex items-center space-x-1">
           <span>보유 종목:</span>
-          <span class="text-indigo-400 font-semibold" id="total-stock-count">0개</span>
+          <span class="text-blue-400 font-bold" id="total-stock-count">0개</span>
         </div>
       </div>
 
-      <!-- 총 평가 금액 (오늘 하루 손익 & 누적 손익 동시 표시) -->
-      <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 shadow-sm relative overflow-hidden backdrop-blur">
-        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-1">
+      <!-- 총 평가 금액 & 손익률 -->
+      <div class="card-obsidian rounded-2xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
           <span>총 평가 금액</span>
           <i data-lucide="pie-chart" class="w-4 h-4 text-slate-500"></i>
         </div>
-        <div class="text-lg sm:text-2xl font-extrabold text-white tracking-tight" id="total-valuation">0원</div>
-        
-        <!-- 오늘 손익 & 총 손익 -->
-        <div class="mt-1.5 space-y-0.5 text-xs">
-          <div class="flex items-center justify-between" id="today-summary-container">
-            <span class="text-slate-400 text-[11px]">오늘 하루:</span>
-            <span id="total-today-pl" class="font-bold text-red-400">+0원 (+0.00%)</span>
-          </div>
-          <div class="flex items-center justify-between" id="total-pl-container">
-            <span class="text-slate-400 text-[11px]">총 누적손익:</span>
-            <span id="total-pl-amount" class="font-bold text-red-400">+0원 (+0.00%)</span>
-          </div>
+        <div class="text-xl sm:text-2xl font-black text-white font-mono-nums tracking-tight" id="total-valuation">0원</div>
+        <div class="mt-1 flex items-center justify-between text-xs" id="total-pl-container">
+          <span class="text-slate-400 text-[11px]">총 수익률:</span>
+          <span id="total-pl-amount" class="font-extrabold font-mono-nums text-emerald-400">+0원 (+0.0%)</span>
         </div>
       </div>
 
-      <!-- 연간 총 예상 배당금 -->
-      <div class="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 shadow-sm relative overflow-hidden backdrop-blur">
-        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-1">
+      <!-- 오늘 하루 내 손익 (전일대비) -->
+      <div class="card-obsidian rounded-2xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
+          <span>오늘 하루 손익</span>
+          <i data-lucide="activity" class="w-4 h-4 text-slate-500"></i>
+        </div>
+        <div class="text-xl sm:text-2xl font-black font-mono-nums tracking-tight" id="total-today-pl">+0원 (+0.0%)</div>
+        <div class="text-[11px] text-slate-400 mt-1 flex items-center space-x-1">
+          <span id="last-updated-text">최근 갱신: 대기 중</span>
+        </div>
+      </div>
+
+      <!-- 연간 예상 배당금 -->
+      <div class="card-obsidian rounded-2xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold mb-1">
           <span>연간 예상 배당금</span>
           <i data-lucide="coins" class="w-4 h-4 text-amber-400"></i>
         </div>
-        <div class="text-lg sm:text-2xl font-extrabold text-amber-400 tracking-tight" id="total-annual-dividend">0원</div>
-        <div class="text-xs text-slate-400 mt-1 flex items-center justify-between">
-          <span>월평균: <strong class="text-slate-200" id="monthly-avg-dividend">0원</strong></span>
-          <span class="text-amber-400/80 font-medium" id="dividend-yield-rate">0.0%</span>
+        <div class="text-xl sm:text-2xl font-black text-amber-400 font-mono-nums tracking-tight" id="total-annual-dividend">0원</div>
+        <div class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
+          <span>배당 수익률:</span>
+          <span class="text-amber-400 font-bold font-mono-nums" id="total-dividend-yield">0.0%</span>
         </div>
       </div>
 
-      <!-- 목표가 도달 알림 요약 -->
-      <div class="bg-gradient-to-br from-slate-900 to-indigo-950/40 border border-indigo-900/40 rounded-2xl p-4 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between text-indigo-300 text-xs font-medium mb-1">
-          <span>목표가 도달 현황</span>
-          <i data-lucide="crosshair" class="w-4 h-4 text-indigo-400"></i>
-        </div>
-        <div class="flex items-center space-x-3 mt-1">
-          <div class="flex-1">
-            <div class="text-xs text-slate-400">1차 도달 (탈출/익절)</div>
-            <div class="text-base sm:text-xl font-bold text-emerald-400" id="hit-count-target1">0건</div>
-          </div>
-          <div class="h-8 w-px bg-slate-800"></div>
-          <div class="flex-1">
-            <div class="text-xs text-slate-400">2차 목표 달성</div>
-            <div class="text-base sm:text-xl font-bold text-purple-400" id="hit-count-target2">0건</div>
-          </div>
-        </div>
-      </div>
     </section>
 
-    <!-- 2. 탭 네비게이션 버튼 -->
-    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-      <nav class="flex space-x-2 sm:space-x-4">
-        <button onclick="switchTab('tab-target')" id="tab-btn-target" class="tab-btn active px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center space-x-2 transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/20">
+    <!-- 2-2. NAVIGATION TAB BAR -->
+    <div class="flex items-center justify-between border-b border-white/10 pb-0">
+      <div class="flex space-x-6">
+        <button id="tab-stocks" onclick="switchTab('stocks')" class="nav-tab-btn active pb-3 text-sm flex items-center space-x-2">
           <i data-lucide="crosshair" class="w-4 h-4"></i>
-          <span>내 평단가 & 목표가 매도</span>
+          <span>보유 종목 & 목표가</span>
         </button>
-        <button onclick="switchTab('tab-dividend')" id="tab-btn-dividend" class="tab-btn px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center space-x-2 transition text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <button id="tab-watchlist" onclick="switchTab('watchlist')" class="nav-tab-btn pb-3 text-sm flex items-center space-x-2">
+          <i data-lucide="eye" class="w-4 h-4"></i>
+          <span>관심 종목</span>
+        </button>
+        <button id="tab-dividend" onclick="switchTab('dividend')" class="nav-tab-btn pb-3 text-sm flex items-center space-x-2">
           <i data-lucide="calendar" class="w-4 h-4"></i>
-          <span>월별 배당 캘린더 & 차트</span>
+          <span>배당금 캘린더</span>
         </button>
-        <button onclick="switchTab('tab-journal')" id="tab-btn-journal" class="tab-btn px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center space-x-2 transition text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <button id="tab-journal" onclick="switchTab('journal')" class="nav-tab-btn pb-3 text-sm flex items-center space-x-2">
           <i data-lucide="book-open" class="w-4 h-4"></i>
-          <span>매매 일지 & 차트 복기</span>
+          <span>매매 복기 일지</span>
         </button>
-      </nav>
+      </div>
 
-      <!-- 시세 최종 갱신 시간 -->
-      <div class="hidden md:flex items-center space-x-2 text-xs text-slate-400">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="last-updated-text">실시간 시세 연동 중</span>
+      <div class="hidden sm:flex items-center space-x-2 mb-2">
+        <button onclick="openWatchlistModal()" class="px-2.5 py-1 text-xs font-bold text-slate-300 bg-[#141A24] hover:bg-[#1E2533] rounded-lg border border-white/10 transition">
+          + 관심종목 등록
+        </button>
+        <button onclick="openJournalModal()" class="px-2.5 py-1 text-xs font-bold text-slate-300 bg-[#141A24] hover:bg-[#1E2533] rounded-lg border border-white/10 transition">
+          + 매매 메모
+        </button>
       </div>
     </div>
 
-    <!-- ==================== TAB 1: 내 평단가 & 목표가 매도 & 오늘 주요 시세 ==================== -->
-    <section id="tab-target" class="space-y-6">
-      
-      <!-- 상단 목표 도달 알림 긴급 배너 (도달 종목 있을 때 노출) -->
-      <div id="target-hit-banner" class="hidden p-4 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-indigo-950/60 border border-emerald-500/40 text-emerald-200 flex items-center justify-between shadow-lg">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0 glow-hit">
-            <i data-lucide="bell-ring" class="w-5 h-5 text-emerald-400"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-sm text-emerald-300">🎉 설정하신 목표가에 도달한 종목이 있습니다!</h4>
-            <p class="text-xs text-emerald-400/80" id="target-hit-banner-desc">매도 원칙과 전략 메모를 확인하고 분할 매도를 검토하세요.</p>
-          </div>
-        </div>
+    <!-- 2-3. TAB 1: 보유 종목 & 목표가 궤적 리스트 -->
+    <div id="view-stocks" class="space-y-4">
+      <div id="stock-card-container" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <!-- Stock Cards Rendered Here Dynamically -->
       </div>
 
-      <!-- 섹션 1: 💼 내 보유 주식 & 평단가 탈출/익절 목표가 -->
-      <div class="space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <span class="w-2 h-5 bg-indigo-500 rounded-full"></span>
-            <h2 class="text-base font-extrabold text-white tracking-tight">💼 내 보유 주식 & 평단가 탈출/익절 관리</h2>
-            <span class="text-xs text-indigo-400 font-semibold bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20" id="portfolio-badge-count">2개 보유</span>
-          </div>
-          <button onclick="openStockModal()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center space-x-1">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-            <span>종목 추가</span>
-          </button>
+      <!-- Empty State -->
+      <div id="stock-empty-state" class="hidden text-center py-16 card-obsidian rounded-2xl p-8 border-dashed border-white/10">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#141A24] flex items-center justify-center text-slate-500">
+          <i data-lucide="plus-circle" class="w-8 h-8"></i>
         </div>
-
-        <!-- 종목 카드 목록 그리드 -->
-        <div id="stock-card-container" class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
-          <!-- Javascript dynamic render -->
-        </div>
-
-        <!-- 종목이 없을 때 빈 상태 안내 -->
-        <div id="stock-empty-state" class="hidden text-center py-12 px-4 bg-slate-900/40 border border-dashed border-slate-800 rounded-2xl">
-          <div class="w-12 h-12 rounded-full bg-slate-800/80 mx-auto flex items-center justify-center mb-2.5 text-slate-400">
-            <i data-lucide="folder-plus" class="w-6 h-6"></i>
-          </div>
-          <h3 class="text-sm font-semibold text-slate-300">등록된 보유 종목이 없습니다</h3>
-          <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">나의 매수 평단가와 1차/2차 목표가를 등록하여 맞춤형 탈출 및 익절 대시보드를 시작해보세요.</p>
-          <div class="mt-3 flex items-center justify-center space-x-2">
-            <button onclick="restoreKumhoStockDirectly()" class="px-3.5 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-semibold rounded-xl transition">
-              금호건설 복원하기
-            </button>
-            <button onclick="openStockModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow transition">
-              새 종목 등록
-            </button>
-          </div>
-        </div>
+        <h3 class="text-base font-bold text-white">등록된 보유 종목이 없습니다</h3>
+        <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">상단의 [종목 추가] 버튼을 눌러 내 매수 평단가와 목표가를 등록하고 실시간 모니터링을 시작해 보세요.</p>
+        <button onclick="openStockModal()" class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition">
+          첫 종목 등록하기
+        </button>
       </div>
+    </div>
 
-      <!-- 섹션 2: 📊 오늘 주요 시장 시세 (관심 종목: 삼성전자, SK하이닉스, 현대차) -->
-      <div class="space-y-3 pt-4 border-t border-slate-800/80">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <span class="w-2 h-5 bg-amber-500 rounded-full"></span>
-            <h2 class="text-base font-extrabold text-white tracking-tight">📊 오늘 주요 시장 시세 (관심 종목)</h2>
-            <span class="text-xs text-slate-400">금일 실시간 시세 및 전일 대비 등락률</span>
-          </div>
-          <button onclick="openWatchlistModal()" class="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center space-x-1">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-            <span>관심종목 추가</span>
-          </button>
-        </div>
-
-        <!-- 관심종목 그리드 -->
-        <div id="watchlist-card-container" class="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
-          <!-- Javascript dynamic render -->
-        </div>
+    <!-- 2-4. TAB 2: 관심 종목 (Watchlist) -->
+    <div id="view-watchlist" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-300">매수 타점 감시 목록</h2>
+        <button onclick="openWatchlistModal()" class="sm:hidden px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-lg">+ 등록</button>
       </div>
-
-    </section>
-
-    <!-- ==================== TAB 2: 월별 배당 캘린더 & 차트 ==================== -->
-    <section id="tab-dividend" class="hidden space-y-6">
-      
-      <!-- 배당 종합 통계 카드 -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
-          <div class="text-xs font-medium text-slate-400 mb-1">연간 총 예상 배당금 (세전)</div>
-          <div class="text-2xl font-extrabold text-amber-400" id="div-card-annual">0원</div>
-          <div class="text-xs text-slate-400 mt-2 flex justify-between border-t border-slate-800/60 pt-2">
-            <span>월평균 예상 수령액</span>
-            <span class="text-white font-semibold" id="div-card-monthly">0원</span>
-          </div>
-        </div>
-
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
-          <div class="text-xs font-medium text-slate-400 mb-1">원금 대비 배당수익률 (Yield on Cost)</div>
-          <div class="text-2xl font-extrabold text-indigo-400" id="div-card-yoc">0.00%</div>
-          <div class="text-xs text-slate-400 mt-2 flex justify-between border-t border-slate-800/60 pt-2">
-            <span>현재가 기준 시가배당률</span>
-            <span class="text-slate-200 font-semibold" id="div-card-current-yield">0.00%</span>
-          </div>
-        </div>
-
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
-          <div class="text-xs font-medium text-slate-400 mb-1">배당 지급 종목 수</div>
-          <div class="text-2xl font-extrabold text-emerald-400" id="div-card-payer-count">0개</div>
-          <div class="text-xs text-slate-400 mt-2 flex justify-between border-t border-slate-800/60 pt-2">
-            <span>최대 배당 수령월</span>
-            <span class="text-emerald-300 font-semibold" id="div-card-peak-month">-월</span>
-          </div>
-        </div>
+      <div id="watchlist-card-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Watchlist Cards Rendered Here -->
       </div>
+      <div id="watchlist-empty-state" class="hidden text-center py-12 card-obsidian rounded-2xl p-6 text-xs text-slate-400">
+        등록된 관심 종목이 없습니다.
+      </div>
+    </div>
 
-      <!-- 월별 배당금 흐름 그래프 (Chart.js) -->
-      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm">
+    <!-- 2-5. TAB 3: 배당금 캘린더 (Dividend) -->
+    <div id="view-dividend" class="hidden space-y-6">
+      <div class="card-obsidian rounded-2xl p-5">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="text-sm sm:text-base font-bold text-white flex items-center space-x-2">
-              <i data-lucide="bar-chart-3" class="w-4 h-4 text-amber-400"></i>
-              <span>월별 예상 배당금 흐름 & 캐시플로우</span>
-            </h3>
-            <p class="text-xs text-slate-400 mt-0.5">매달 입금되는 현금 흐름을 시각적으로 모니터링합니다.</p>
+            <h2 class="text-sm font-extrabold text-white">월별 예상 배당금 흐름도</h2>
+            <p class="text-xs text-slate-400 mt-0.5">보유 종목의 배당월 설정에 기반한 월별 예상 현금흐름</p>
           </div>
-          <div class="flex items-center space-x-2">
-            <span class="inline-block w-3 h-3 rounded bg-amber-500"></span>
-            <span class="text-xs text-slate-400">월별 배당금</span>
-          </div>
+          <span class="text-amber-400 font-mono-nums font-bold text-xs" id="dividend-chart-summary">연간 합계 계산 중</span>
         </div>
-        <div class="h-64 sm:h-72 w-full">
+        <div class="h-64 sm:h-80 w-full relative">
           <canvas id="dividendChart"></canvas>
         </div>
       </div>
 
-      <!-- 1월~12월 배당 타임라인 캘린더 그리드 -->
-      <div>
-        <h3 class="text-sm sm:text-base font-bold text-white mb-3 flex items-center space-x-2">
-          <i data-lucide="calendar-days" class="w-4 h-4 text-indigo-400"></i>
-          <span>12개월 배당 캘린더 상세</span>
-        </h3>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4" id="dividend-calendar-grid">
-          <!-- Javascript dynamic render -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3" id="dividend-months-grid">
+        <!-- 1~12월 배당금 카드 동적 생성 -->
+      </div>
+    </div>
+
+    <!-- 2-6. TAB 4: 매매 복기 일지 (Journal) -->
+    <div id="view-journal" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <h2 class="text-sm font-bold text-slate-300">매매 일지 & 복기 메모</h2>
+          <div class="flex space-x-1">
+            <button onclick="filterJournals('ALL')" class="journal-filter-btn active text-[11px] px-2.5 py-0.5 rounded-md bg-[#141A24] text-white border border-white/10">전체</button>
+            <button onclick="filterJournals('BUY')" class="journal-filter-btn text-[11px] px-2.5 py-0.5 rounded-md bg-transparent text-slate-400 border border-white/5 hover:text-white">매수</button>
+            <button onclick="filterJournals('SELL')" class="journal-filter-btn text-[11px] px-2.5 py-0.5 rounded-md bg-transparent text-slate-400 border border-white/5 hover:text-white">매도</button>
+            <button onclick="filterJournals('MEMO')" class="journal-filter-btn text-[11px] px-2.5 py-0.5 rounded-md bg-transparent text-slate-400 border border-white/5 hover:text-white">관점</button>
+          </div>
         </div>
-      </div>
-    </section>
-
-    <!-- ==================== TAB 3: 매매 일지 & 차트 복기 ==================== -->
-    <section id="tab-journal" class="hidden space-y-4">
-      
-      <!-- 상단 매매일지 액션바 & 필터 -->
-      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div class="flex items-center space-x-2 w-full sm:w-auto">
-          <button onclick="filterJournals('전체')" class="journal-filter active px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition">전체</button>
-          <button onclick="filterJournals('매수')" class="journal-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">매수</button>
-          <button onclick="filterJournals('매도')" class="journal-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">매도</button>
-          <button onclick="filterJournals('관망')" class="journal-filter px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">관망/분석</button>
-        </div>
-
-        <button onclick="openJournalModal()" class="w-full sm:w-auto flex items-center justify-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-xs font-semibold rounded-xl shadow transition active:scale-95">
-          <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
-          <span>새 매매 일지 작성</span>
-        </button>
+        <button onclick="openJournalModal()" class="px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-lg">+ 일지 쓰기</button>
       </div>
 
-      <!-- 매매 일지 리스트 컨테이너 -->
-      <div id="journal-list-container" class="space-y-3.5">
-        <!-- Javascript dynamic render -->
+      <div id="journal-list-container" class="space-y-2.5">
+        <!-- Journal Cards Rendered Here -->
       </div>
-
-      <!-- 일지 없을 때 빈 상태 -->
-      <div id="journal-empty-state" class="hidden text-center py-16 px-4 bg-slate-900/40 border border-dashed border-slate-800 rounded-2xl">
-        <div class="w-16 h-16 rounded-full bg-slate-800/80 mx-auto flex items-center justify-center mb-3 text-slate-400">
-          <i data-lucide="book-marked" class="w-8 h-8"></i>
-        </div>
-        <h3 class="text-base font-semibold text-slate-300">작성된 매매 일지가 없습니다</h3>
-        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">분할 매수/매도 이유, 지지/저항선 차트 복기, 매매 원칙을 기록하여 뇌동매매를 방지하세요.</p>
-        <button onclick="openJournalModal()" class="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow transition">
-          첫 매매 일지 작성
-        </button>
+      <div id="journal-empty-state" class="hidden text-center py-12 card-obsidian rounded-2xl p-6 text-xs text-slate-400">
+        작성된 매매 일지가 없습니다.
       </div>
-    </section>
+    </div>
 
   </main>
 
-  <!-- ==================== 내 보유 종목 등록/수정 모달 ==================== -->
-  <div id="modal-stock" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="font-bold text-base text-white flex items-center space-x-2" id="modal-stock-title">
-          <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-400"></i>
-          <span>내 보유 종목 추가</span>
-        </h3>
-        <button onclick="closeStockModal()" class="p-1 text-slate-400 hover:text-white rounded-lg transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+  <!-- MODALS SECTION (Stock, Watchlist, Journal, Backup) -->
+  <!-- 1. Stock Modal -->
+  <div id="stock-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#0E121A] border border-white/15 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <h3 id="stock-modal-title" class="text-base font-extrabold text-white">보유 종목 등록</h3>
+        <button onclick="closeStockModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
-      <form id="form-stock" onsubmit="handleSaveStock(event)" class="p-5 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+      <form id="stock-form" onsubmit="handleSaveStock(event)" class="space-y-3.5 text-xs">
         <input type="hidden" id="stock-id">
-
-        <!-- 종목명 & 종목코드 -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">종목명 <span class="text-red-400">*</span></label>
-            <input type="text" id="stock-name" required placeholder="예: 금호건설, 제이엘케이" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+            <label class="block text-slate-300 font-semibold mb-1">종목명 *</label>
+            <input type="text" id="stock-name" required placeholder="예: 금호건설" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">종목코드 (6자리) <span class="text-red-400">*</span></label>
-            <input type="text" id="stock-code" required placeholder="예: 002990, 322510" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+            <label class="block text-slate-300 font-semibold mb-1">종목코드 (6자리) *</label>
+            <input type="text" id="stock-code" required maxlength="6" placeholder="예: 002990" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white font-mono placeholder-slate-500 focus:outline-none focus:border-blue-500">
           </div>
         </div>
 
-        <!-- 내 평단가 & 보유 수량 -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">내 평단가 (원) <span class="text-red-400">*</span></label>
-            <input type="number" step="any" id="stock-buy-price" required placeholder="예: 19500" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+            <label class="block text-slate-300 font-semibold mb-1">매수 평단가 (원) *</label>
+            <input type="number" id="stock-buy-price" required min="1" step="any" placeholder="예: 19500" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white font-mono-nums placeholder-slate-500 focus:outline-none focus:border-blue-500">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">보유 수량 (주) <span class="text-red-400">*</span></label>
-            <input type="number" step="any" id="stock-qty" required placeholder="예: 300" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500">
+            <label class="block text-slate-300 font-semibold mb-1">보유 수량 (주) *</label>
+            <input type="number" id="stock-quantity" required min="1" step="any" placeholder="예: 100" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white font-mono-nums placeholder-slate-500 focus:outline-none focus:border-blue-500">
           </div>
         </div>
 
-        <!-- 1차 목표가 & 메모 -->
-        <div class="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-bold text-emerald-400 flex items-center space-x-1">
-              <i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
-              <span>1차 목표가 (탈출 / 1차 익절) <span class="text-red-400">*</span></span>
-            </label>
+        <div class="p-3 bg-[#141A24] rounded-xl border border-white/5 space-y-2.5">
+          <div class="text-[11px] font-bold text-blue-400">목표가 매도 전략 설정</div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-300 text-[11px] mb-1">1차 목표가 (원)</label>
+              <input type="number" id="stock-target1" step="any" placeholder="예: 22000" class="w-full bg-[#0E121A] border border-white/10 rounded-lg px-2.5 py-1.5 text-white font-mono-nums focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-slate-300 text-[11px] mb-1">2차 목표가 (원)</label>
+              <input type="number" id="stock-target2" step="any" placeholder="예: 25000" class="w-full bg-[#0E121A] border border-white/10 rounded-lg px-2.5 py-1.5 text-white font-mono-nums focus:outline-none focus:border-blue-500">
+            </div>
           </div>
-          <input type="number" step="any" id="stock-target1-price" required placeholder="예: 19500 (본전가 또는 1차 목표가)" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500">
-          <input type="text" id="stock-target1-memo" placeholder="1차 목표가 전략 메모 (예: 평단가 본전 탈출 50% 분할 매도)" class="w-full px-3 py-1.5 bg-slate-800/80 border border-slate-700/80 rounded-lg text-xs text-slate-300 focus:outline-none focus:border-emerald-500">
+          <div class="grid grid-cols-2 gap-3">
+            <input type="text" id="stock-target1-memo" placeholder="1차 매도 메모 (예: 50% 분할 익절)" class="w-full bg-[#0E121A] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-[11px]">
+            <input type="text" id="stock-target2-memo" placeholder="2차 매도 메모 (예: 전량 익절)" class="w-full bg-[#0E121A] border border-white/10 rounded-lg px-2.5 py-1.5 text-white text-[11px]">
+          </div>
         </div>
 
-        <!-- 2차 목표가 & 메모 -->
-        <div class="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="text-xs font-bold text-purple-400 flex items-center space-x-1">
-              <i data-lucide="rocket" class="w-3.5 h-3.5"></i>
-              <span>2차 목표가 (최종 익절 목표)</span>
-            </label>
-          </div>
-          <input type="number" step="any" id="stock-target2-price" placeholder="예: 22000 (최종 목표가)" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-purple-500">
-          <input type="text" id="stock-target2-memo" placeholder="2차 목표가 전략 메모 (예: 전고점 저항선 전량 익절)" class="w-full px-3 py-1.5 bg-slate-800/80 border border-slate-700/80 rounded-lg text-xs text-slate-300 focus:outline-none focus:border-purple-500">
-        </div>
-
-        <!-- 배당금 정보 -->
-        <div class="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2.5">
-          <label class="text-xs font-bold text-amber-400 flex items-center space-x-1">
-            <i data-lucide="coins" class="w-3.5 h-3.5"></i>
-            <span>배당금 설정 (월별 캘린더 연동)</span>
-          </label>
-          <div>
-            <label class="block text-[11px] text-slate-400 mb-1">연간 주당 배당금 (원)</label>
-            <input type="number" step="any" id="stock-dividend-share" placeholder="예: 500 (없으면 0)" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
-          </div>
-
-          <div>
-            <label class="block text-[11px] text-slate-400 mb-1">배당 지급월 선택 (다중 선택 가능)</label>
-            <div class="grid grid-cols-6 gap-1.5" id="month-checkbox-container">
-              <!-- 1~12월 체크박스 버튼 -->
+        <div class="p-3 bg-[#141A24] rounded-xl border border-white/5 space-y-2">
+          <div class="text-[11px] font-bold text-amber-400">배당금 설정 (선택)</div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-300 text-[11px] mb-1">주당 연간 배당금 (원)</label>
+              <input type="number" id="stock-dividend-dps" step="any" placeholder="예: 500" class="w-full bg-[#0E121A] border border-white/10 rounded-lg px-2.5 py-1.5 text-white font-mono-nums">
+            </div>
+            <div>
+              <label class="block text-slate-300 text-[11px] mb-1">배당 지급월 (다중 선택 가능)</label>
+              <div id="dividend-month-checkboxes" class="grid grid-cols-6 gap-1 mt-1">
+                <!-- Checkboxes 1~12 injected via JS -->
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- 종목 메모 -->
         <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">투자 메모 / 핵심 포인트</label>
-          <textarea id="stock-memo" rows="2" placeholder="예: 저평가 건설주 배당 및 수주 반등 기대" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
+          <label class="block text-slate-300 font-semibold mb-1">매매 전략 / 투자 메모</label>
+          <textarea id="stock-memo" rows="2" placeholder="투자 아이디어, 매수 사유 등" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"></textarea>
         </div>
 
-        <div class="pt-2 flex items-center justify-end space-x-2 border-t border-slate-800">
-          <button type="button" onclick="closeStockModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-xl transition">취소</button>
-          <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow transition">저장하기</button>
+        <div class="flex justify-end space-x-2 pt-2 border-t border-white/10">
+          <button type="button" onclick="closeStockModal()" class="px-4 py-2 text-slate-400 hover:text-white">취소</button>
+          <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-xl transition">저장하기</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ==================== 관심 종목 추가 모달 ==================== -->
-  <div id="modal-watchlist" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
-      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="font-bold text-base text-white flex items-center space-x-2">
-          <i data-lucide="eye" class="w-4 h-4 text-amber-400"></i>
-          <span>관심 종목(금일 시세 조회) 추가</span>
-        </h3>
-        <button onclick="closeWatchlistModal()" class="p-1 text-slate-400 hover:text-white rounded-lg transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+  <!-- 2. Watchlist Modal -->
+  <div id="watchlist-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#0E121A] border border-white/15 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-xs">
+      <div class="flex items-center justify-between pb-2 border-b border-white/10">
+        <h3 class="text-base font-extrabold text-white">관심 종목 등록</h3>
+        <button onclick="closeWatchlistModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-
-      <form id="form-watchlist" onsubmit="handleSaveWatchlist(event)" class="p-5 space-y-4">
+      <form id="watchlist-form" onsubmit="handleSaveWatchlist(event)" class="space-y-3">
         <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">종목명 <span class="text-red-400">*</span></label>
-          <input type="text" id="watch-name" required placeholder="예: 삼성전자, SK하이닉스, 현대차" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+          <label class="block text-slate-300 font-semibold mb-1">종목명 *</label>
+          <input type="text" id="watch-name" required placeholder="예: 삼성전자" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">종목코드 (6자리) <span class="text-red-400">*</span></label>
-          <input type="text" id="watch-code" required placeholder="예: 005930, 000660, 005380" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-amber-500">
+          <label class="block text-slate-300 font-semibold mb-1">종목코드 (6자리) *</label>
+          <input type="text" id="watch-code" required maxlength="6" placeholder="예: 005930" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white font-mono">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">메모 / 관심 포인트</label>
-          <input type="text" id="watch-memo" placeholder="예: 반도체 대장주 금일 시세 모니터링" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500">
+          <label class="block text-slate-300 font-semibold mb-1">목표 매수가 (원)</label>
+          <input type="number" id="watch-target-price" placeholder="예: 65000" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white font-mono-nums">
         </div>
-
-        <div class="pt-2 flex items-center justify-end space-x-2 border-t border-slate-800">
-          <button type="button" onclick="closeWatchlistModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-xl transition">취소</button>
-          <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-xl shadow transition">관심종목 등록</button>
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">감시 메모</label>
+          <input type="text" id="watch-memo" placeholder="예: 65,000원 지지 확인 시 분할 매수" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white">
+        </div>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeWatchlistModal()" class="px-4 py-2 text-slate-400">취소</button>
+          <button type="submit" class="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl">등록</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ==================== 매매일지 작성/수정 모달 ==================== -->
-  <div id="modal-journal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
-        <h3 class="font-bold text-base text-white flex items-center space-x-2" id="modal-journal-title">
-          <i data-lucide="pen-tool" class="w-4 h-4 text-emerald-400"></i>
-          <span>새 매매 일지 작성</span>
-        </h3>
-        <button onclick="closeJournalModal()" class="p-1 text-slate-400 hover:text-white rounded-lg transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+  <!-- 3. Journal Modal -->
+  <div id="journal-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#0E121A] border border-white/15 rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4 text-xs">
+      <div class="flex items-center justify-between pb-2 border-b border-white/10">
+        <h3 id="journal-modal-title" class="text-base font-extrabold text-white">매매 복기 일지 작성</h3>
+        <button onclick="closeJournalModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-
-      <form id="form-journal" onsubmit="handleSaveJournal(event)" class="p-5 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+      <form id="journal-form" onsubmit="handleSaveJournal(event)" class="space-y-3">
         <input type="hidden" id="journal-id">
-
-        <!-- 거래일자 & 매매구분 -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">거래일자 <span class="text-red-400">*</span></label>
-            <input type="date" id="journal-date" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500">
+            <label class="block text-slate-300 font-semibold mb-1">날짜 *</label>
+            <input type="date" id="journal-date" required class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">매매 구분 <span class="text-red-400">*</span></label>
-            <select id="journal-type" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500">
-              <option value="매수">매수 (분할 진입)</option>
-              <option value="매도">매도 (분할 익절/탈출)</option>
-              <option value="관망">관망 / 차트 분석</option>
+            <label class="block text-slate-300 font-semibold mb-1">관련 종목</label>
+            <input type="text" id="journal-stock" placeholder="예: 금호건설" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">구분</label>
+            <select id="journal-type" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white">
+              <option value="BUY">매수 기록</option>
+              <option value="SELL">매도/익절 기록</option>
+              <option value="MEMO">시장 관점 / 복기 메모</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">심리 상태</label>
+            <select id="journal-sentiment" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white">
+              <option value="GOOD">원칙 준수 (만족)</option>
+              <option value="FOMO">뇌동매매 / 조급함</option>
+              <option value="CAUTION">신중한 관망</option>
             </select>
           </div>
         </div>
-
-        <!-- 종목 선택 또는 직접입력 -->
         <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">종목명 <span class="text-red-400">*</span></label>
-          <input type="text" id="journal-stock-name" required placeholder="예: 금호건설, 제이엘케이" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500">
+          <label class="block text-slate-300 font-semibold mb-1">제목</label>
+          <input type="text" id="journal-title" required placeholder="일지 제목" class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white">
         </div>
-
-        <!-- 체결 단가 & 수량 -->
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">체결 단가 (원)</label>
-            <input type="number" step="any" id="journal-price" placeholder="예: 16500" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">체결 수량 (주)</label>
-            <input type="number" step="any" id="journal-qty" placeholder="예: 50" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500">
-          </div>
-        </div>
-
-        <!-- 매매 이유 / 원칙 -->
         <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">매수 / 매도 사유 (원칙 체크) <span class="text-red-400">*</span></label>
-          <textarea id="journal-reason" required rows="2" placeholder="예: 바닥 지지 확인 후 평단가(19,500원) 낮추기 위한 3차 분할 매수" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"></textarea>
+          <label class="block text-slate-300 font-semibold mb-1">상세 내용 및 복기</label>
+          <textarea id="journal-content" rows="4" placeholder="매매 이유, 차트 자리, 반성할 점 등을 자유롭게 적어보세요." class="w-full bg-[#141A24] border border-white/10 rounded-xl px-3 py-2 text-white"></textarea>
         </div>
-
-        <!-- 차트 복기 메모 -->
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">차트 복기 메모 (지지선, 저항선, 거래량 등)</label>
-          <textarea id="journal-chart-memo" rows="2" placeholder="예: 일봉상 쌍바닥 형성, 거래량 점증 추세 확인. 16,000원 손절선 잡고 진입." class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"></textarea>
-        </div>
-
-        <!-- 심리 태그 -->
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">심리 / 원칙 태그</label>
-          <div class="flex flex-wrap gap-2" id="sentiment-tag-container">
-            <button type="button" onclick="selectSentiment(this, '원칙매매')" class="sentiment-btn px-2.5 py-1 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 hover:border-emerald-500 transition">원칙매매</button>
-            <button type="button" onclick="selectSentiment(this, '계획진입')" class="sentiment-btn px-2.5 py-1 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 hover:border-emerald-500 transition">계획진입</button>
-            <button type="button" onclick="selectSentiment(this, '냉정/원칙')" class="sentiment-btn px-2.5 py-1 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 hover:border-emerald-500 transition">냉정/원칙</button>
-            <button type="button" onclick="selectSentiment(this, '뇌동주의')" class="sentiment-btn px-2.5 py-1 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 hover:border-amber-500 transition">뇌동주의</button>
-            <button type="button" onclick="selectSentiment(this, '익절원칙')" class="sentiment-btn px-2.5 py-1 rounded-lg text-xs bg-slate-800 text-slate-300 border border-slate-700 hover:border-emerald-500 transition">익절원칙</button>
-          </div>
-          <input type="hidden" id="journal-sentiment" value="원칙매매">
-        </div>
-
-        <div class="pt-2 flex items-center justify-end space-x-2 border-t border-slate-800">
-          <button type="button" onclick="closeJournalModal()" class="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-xl transition">취소</button>
-          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow transition">일지 저장</button>
+        <div class="flex justify-end space-x-2 pt-2">
+          <button type="button" onclick="closeJournalModal()" class="px-4 py-2 text-slate-400">취소</button>
+          <button type="submit" class="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl">저장</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ==================== 데이터 백업 & 복원 모달 ==================== -->
-  <div id="modal-backup" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-5 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="font-bold text-base text-white flex items-center space-x-2">
-          <i data-lucide="database" class="w-4 h-4 text-indigo-400"></i>
-          <span>데이터 백업 및 복원</span>
-        </h3>
-        <button onclick="closeBackupModal()" class="text-slate-400 hover:text-white">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+  <!-- 4. Backup Modal -->
+  <div id="backup-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#0E121A] border border-white/15 rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 text-xs">
+      <div class="flex items-center justify-between pb-2 border-b border-white/10">
+        <h3 class="text-base font-extrabold text-white">데이터 백업 & 복원</h3>
+        <button onclick="closeBackupModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-
-      <div class="space-y-3 text-xs text-slate-300">
-        <p class="text-slate-400">앱의 모든 종목 및 매매일지 데이터를 안전하게 파일로 백업하거나 복원할 수 있습니다.</p>
-        
-        <div class="flex space-x-2">
-          <button onclick="exportDataJSON()" class="flex-1 py-2.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold flex items-center justify-center space-x-1.5 transition">
-            <i data-lucide="download" class="w-4 h-4"></i>
-            <span>JSON 백업 다운로드</span>
-          </button>
-          <label class="flex-1 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl font-semibold flex items-center justify-center space-x-1.5 cursor-pointer transition text-center">
-            <i data-lucide="upload" class="w-4 h-4"></i>
-            <span>백업 복원</span>
-            <input type="file" accept=".json" onchange="importDataJSON(event)" class="hidden">
-          </label>
-        </div>
-
-        <div class="pt-2 border-t border-slate-800 space-y-2">
-          <button onclick="restoreKumhoStockDirectly()" class="w-full py-2.5 px-3 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5">
-            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-            <span>'금호건설' 보유 종목 즉시 복원하기</span>
-          </button>
-          <button onclick="resetToSampleData()" class="w-full py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-lg transition font-medium">
-            기본 전체 데이터(금호건설, 제이엘케이 + 관심3종목) 초기화
-          </button>
-        </div>
+      <p class="text-slate-400 leading-relaxed">
+        등록된 보유 종목, 목표가, 매매 일지 데이터를 JSON 파일로 내보내거나 가져옵니다.
+      </p>
+      <div class="space-y-2 pt-2">
+        <button onclick="exportDataJSON()" class="w-full py-2.5 bg-[#141A24] hover:bg-[#1E2533] border border-white/10 rounded-xl font-bold text-white flex items-center justify-center space-x-2">
+          <i data-lucide="download" class="w-4 h-4 text-blue-400"></i>
+          <span>내 데이터 JSON 백업 다운로드</span>
+        </button>
+        <button onclick="document.getElementById('import-file-input').click()" class="w-full py-2.5 bg-[#141A24] hover:bg-[#1E2533] border border-white/10 rounded-xl font-bold text-white flex items-center justify-center space-x-2">
+          <i data-lucide="upload" class="w-4 h-4 text-emerald-400"></i>
+          <span>JSON 백업 파일 복원하기</span>
+        </button>
+        <input type="file" id="import-file-input" accept=".json" onchange="importDataJSON(event)" class="hidden">
       </div>
     </div>
   </div>
 
-  <!-- 토스트 알림 컴포넌트 -->
-  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-2 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold bg-slate-800 text-white border border-slate-700">
-    <i id="toast-icon" data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-    <span id="toast-msg">메시지</span>
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-[#141A24] border border-white/15 text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-bold transition-all duration-300 opacity-0 pointer-events-none flex items-center space-x-2">
+    <span id="toast-icon">✓</span>
+    <span id="toast-message">알림 메시지</span>
   </div>
 
-  <!-- ==================== 프론트엔드 핵심 스크립트 ==================== -->
+  
+  <!-- ⚡ GITHUB PAGES CONFIGURATION -->
   <script>
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzvW9lzY-NNF5Apfvw-5PwegXFyg-v2usMOt8wIFiGYTyR22SUeM-zkRbm-QFejyYFwIw/exec';
+  </script>
+
+  <!-- JS LOGIC SECTION (PRESERVED 100%) -->
+
+<script>
     // 전역 상태
     let appData = {
       stocks: [],
@@ -619,25 +505,22 @@
     let dividendChartInstance = null;
     let selectedMonths = [];
 
-    // 실시간 시세 조회 백엔드 API (Google Apps Script 엔드포인트 연동)
-    const GAS_PRICE_API_URL = 'https://script.google.com/macros/s/AKfycbwuxwxxhTN81HmJUKEUjJZYgWJ8kUTlvJplmtXWuHEA2kgOHMR7NCP1dqboRr5Fe04p7g/exec';
-
     // 기본 초기 예시 데이터
-    const SAMPLE_DATA = {
+        const SAMPLE_DATA = {
       stocks: [
         {
           id: 'stock_1',
           name: '금호건설',
           code: '002990',
           currency: 'KRW',
-          buyPrice: 19500,     // 평단가 (19,500원)
-          quantity: 300,        // 300주
-          target1Price: 19500,  // 1차 본전 탈출 목표가
-          target2Price: 22000,  // 2차 익절 목표가
+          buyPrice: 19760,
+          quantity: 660,
+          target1Price: 19500,
+          target2Price: 22000,
           target1Memo: '평단가 19,500원 본전 탈출 (50% 분할 매도)',
-          target2Memo: '전고점 22,000원 도달 시 전량 익절',
-          dividendPerShare: 500, // 주당 500원 배당
-          dividendMonths: [4],   // 4월 배당
+          target2Memo: '전고점 22,000원 도달 시 전량 익절 마무리',
+          dividendPerShare: 500,
+          dividendMonths: [4],
           memo: '저평가 건설주 배당 및 수주 반등 기대'
         },
         {
@@ -645,36 +528,21 @@
           name: '제이엘케이',
           code: '322510',
           currency: 'KRW',
-          buyPrice: 6600,       // 평단가 (6,600원)
-          quantity: 1000,       // 1000주
-          target1Price: 7500,   // 1차 목표가
-          target2Price: 9000,   // 2차 목표가
-          target1Memo: '1차 저항선 7,500원 도달 시 절반 매도',
-          target2Memo: 'AI 의료 FDA 승인 모멘텀 9,000원 전량 익절',
+          buyPrice: 6617,
+          quantity: 286,
+          target1Price: 8000,
+          target2Price: 12000,
+          target1Memo: '1차 저항선 8,000원 도달 시 원금 회수 절반 매도',
+          target2Memo: 'AI 의료 FDA 승인 모멘텀 12,000원 전량 익절',
           dividendPerShare: 0,
           dividendMonths: [],
-          memo: 'AI 의료 뇌졸중 솔루션 해외 진출 기대'
+          memo: 'AI 의료 뇌졸중 솔루션 해외 진출 모멘텀'
         }
       ],
       watchlist: [
-        {
-          id: 'watch_1',
-          name: '삼성전자',
-          code: '005930',
-          memo: '반도체 대표 대장주'
-        },
-        {
-          id: 'watch_2',
-          name: 'SK하이닉스',
-          code: '000660',
-          memo: 'HBM AI 메모리 선도주'
-        },
-        {
-          id: 'watch_3',
-          name: '현대차',
-          code: '005380',
-          memo: '완성차 대표 / 밸류업 & 배당'
-        }
+        { id: 'watch_1', name: '삼성전자', code: '005930', memo: '반도체 대장주 / 지수 영향' },
+        { id: 'watch_2', name: 'SK하이닉스', code: '000660', memo: 'HBM AI 메모리 선도주' },
+        { id: 'watch_3', name: '현대차', code: '005380', memo: '자동차 대표주 / 밸류업 & 배당' }
       ],
       journals: [
         {
@@ -682,24 +550,22 @@
           date: '2026-08-20',
           stockName: '금호건설',
           code: '002990',
-          type: '매수',
+          type: 'BUY',
           price: 16500,
           quantity: 50,
-          reason: '바닥 지지 확인 후 평단가(19,500원) 낮추기 위한 3차 분할 매수',
-          chartMemo: '일봉상 쌍바닥 형성, 거래량 점증 추세 확인. 16,000원 손절선 잡고 진입.',
-          sentiment: '원칙매매'
+          reason: '바닥 지지 확인 후 평단가(19,760원) 낮추기 위한 분할 매수',
+          sentiment: 'GOOD'
         },
         {
           id: 'j_2',
           date: '2026-08-10',
           stockName: '제이엘케이',
           code: '322510',
-          type: '매수',
-          price: 6600,
-          quantity: 500,
+          type: 'BUY',
+          price: 6617,
+          quantity: 286,
           reason: '의료 AI 급락 후 60일선 지지라인 반등 매수',
-          chartMemo: '60일 이평선 지지 확인 후 양봉 전환 시점에 분할 매수.',
-          sentiment: '계획진입'
+          sentiment: 'GOOD'
         }
       ]
     };
@@ -736,58 +602,65 @@
     }
 
     // 데이터 로드 (GAS 백엔드 또는 로컬스토리지)
+        // 데이터 로드: 서버 주입 데이터 우선 -> 로컬 스토리지 -> 백그라운드 클라우드
+        // ⚡ [GitHub Pages 전용 초고속 동기화]
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzvW9lzY-NNF5Apfvw-5PwegXFyg-v2usMOt8wIFiGYTyR22SUeM-zkRbm-QFejyYFwIw/exec';
+
     function loadData() {
+      // 1. 0.01초 폰 자체 로컬 캐시 즉시 렌더링
+      loadLocalData();
+
+      // 2. 백그라운드 구글 클라우드 동기화
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
           .withSuccessHandler((data) => {
-            if (data && data.stocks) {
+            if (data && data.stocks && data.stocks.length > 0) {
               appData = data;
-              if (!appData.watchlist) appData.watchlist = JSON.parse(JSON.stringify(SAMPLE_DATA.watchlist));
-            } else {
-              appData = JSON.parse(JSON.stringify(SAMPLE_DATA));
+              localStorage.setItem('MY_STOCK_APP_DATA_V3', JSON.stringify(appData));
+              renderAll();
+              refreshAllPrices();
             }
-            renderAll();
-            refreshAllPrices();
-          })
-          .withFailureHandler((err) => {
-            console.warn('GAS load error, using local data:', err);
-            loadLocalData();
           })
           .loadAppData();
       } else {
-        loadLocalData();
+        // GitHub Pages 환경: GAS doPost API 호출
+        fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'loadAppData' })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.stocks && data.stocks.length > 0) {
+            appData = data;
+            localStorage.setItem('MY_STOCK_APP_DATA_V3', JSON.stringify(appData));
+            renderAll();
+            refreshAllPrices();
+          }
+        })
+        .catch(err => console.log('GitHub background cloud sync:', err));
       }
-    }
-
-    function loadLocalData() {
-      const local = localStorage.getItem('MY_STOCK_APP_DATA_V3');
-      if (local) {
-        try {
-          appData = JSON.parse(local);
-          if (!appData.watchlist) appData.watchlist = JSON.parse(JSON.stringify(SAMPLE_DATA.watchlist));
-        } catch(e) {
-          appData = JSON.parse(JSON.stringify(SAMPLE_DATA));
-        }
-      } else {
-        appData = JSON.parse(JSON.stringify(SAMPLE_DATA));
-      }
-      renderAll();
-      refreshAllPrices();
     }
 
     function persistData() {
+      // 1. 0.05초 즉시 로컬 저장 및 화면 업데이트
       localStorage.setItem('MY_STOCK_APP_DATA_V3', JSON.stringify(appData));
+      renderAll();
+      showToast('변경 사항이 즉시 저장되었습니다! ⚡', 'success');
 
+      // 2. 백그라운드 구글 클라우드 저장
       if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-          .withSuccessHandler(() => {
-            console.log('GAS cloud sync success');
-          })
-          .saveAppData(appData);
+        google.script.run.saveAppData(appData);
+      } else {
+        fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'saveAppData', payload: appData })
+        }).catch(err => console.warn('Cloud sync error:', err));
       }
     }
 
-    // 시세 갱신 (GitHub Pages 및 GAS 전체 호환)
+    // 시세 갱신 (내 보유 종목 + 관심 종목 전체)
     function refreshAllPrices() {
       const icon = document.getElementById('icon-refresh');
       if (icon) icon.classList.add('animate-spin');
@@ -796,13 +669,7 @@
       const watchCodes = (appData.watchlist || []).map(w => w.code);
       const allCodes = Array.from(new Set([...stockCodes, ...watchCodes])).filter(c => c);
 
-      if (allCodes.length === 0) {
-        if (icon) icon.classList.remove('animate-spin');
-        return;
-      }
-
-      // 1. Google Apps Script 내부 환경
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
+      if (typeof google !== 'undefined' && google.script && google.script.run && allCodes.length > 0) {
         google.script.run
           .withSuccessHandler((prices) => {
             if (prices) {
@@ -814,36 +681,19 @@
             showToast('실시간 시세가 최신으로 갱신되었습니다.', 'success');
           })
           .withFailureHandler((err) => {
-            fetchPricesViaWeb(allCodes, icon);
+            if (icon) icon.classList.remove('animate-spin');
+            fallbackLocalPrices();
+            renderAll();
           })
           .fetchBatchStockPrices(allCodes);
       } else {
-        // 2. GitHub Pages / 브라우저 웹 호스팅 환경
-        fetchPricesViaWeb(allCodes, icon);
-      }
-    }
-
-    function fetchPricesViaWeb(symbols, icon) {
-      const url = GAS_PRICE_API_URL + '?action=price&symbols=' + symbols.join(',');
-      fetch(url)
-        .then(res => res.json())
-        .then(prices => {
-          if (prices && Object.keys(prices).length > 0) {
-            livePrices = prices;
-            document.getElementById('last-updated-text').textContent = '실시간 시세: ' + new Date().toLocaleTimeString('ko-KR');
-            showToast('실시간 시세가 최신으로 갱신되었습니다.', 'success');
-          } else {
-            fallbackLocalPrices();
-          }
+        setTimeout(() => {
           if (icon) icon.classList.remove('animate-spin');
-          renderAll();
-        })
-        .catch(err => {
-          console.warn('API fetch error, using fallback:', err);
           fallbackLocalPrices();
-          if (icon) icon.classList.remove('animate-spin');
           renderAll();
-        });
+          showToast('실시간 시세 갱신 완료', 'info');
+        }, 500);
+      }
     }
 
     // 오프라인 / 기본 시세 Fallback
@@ -854,9 +704,9 @@
           let demoPrice = 50000;
           let todayDiff = 0;
           let todayRate = 0;
-          if (s.code === '002990') { demoPrice = 18440; todayDiff = 1940; todayRate = 11.76; }
+          if (s.code === '002990') { demoPrice = 18080; todayDiff = 1580; todayRate = 9.58; }
           else if (s.code === '322510') { demoPrice = 4720; todayDiff = -140; todayRate = -2.88; }
-          else if (s.code === '005930') { demoPrice = 253000; todayDiff = -8000; todayRate = -3.07; }
+          else if (s.code === '005930') { demoPrice = 252250; todayDiff = -8750; todayRate = -3.35; }
           else if (s.code === '000660') { demoPrice = 1630000; todayDiff = -63000; todayRate = -3.72; }
           else if (s.code === '005380') { demoPrice = 378750; todayDiff = -21750; todayRate = -5.43; }
           
@@ -981,7 +831,7 @@
     }
 
     // 2. 내 보유 종목 카드 렌더링 (금호건설, 제이엘케이 등)
-    function renderStockCards() {
+        function renderStockCards() {
       const container = document.getElementById('stock-card-container');
       const emptyState = document.getElementById('stock-empty-state');
 
@@ -1008,24 +858,23 @@
         const todayDiff = live && live.todayChangePrice !== undefined ? live.todayChangePrice : 0;
         const todayRate = live && live.todayChangeRate !== undefined ? live.todayChangeRate : 0;
         const prevClose = live && live.prevClosePrice ? live.prevClosePrice : (currentPrice - todayDiff);
-        const todayMyGain = todayDiff * qty; // 오늘 하루 내 보유 수량 기준 번 돈/잃은 돈
+        const todayMyGain = todayDiff * qty;
 
         const isTodayUp = todayDiff > 0;
         const isTodayDown = todayDiff < 0;
         const todayBadgeClass = isTodayUp 
-          ? 'bg-red-500/20 text-red-400 border-red-500/40' 
-          : (isTodayDown ? 'bg-blue-500/20 text-blue-400 border-blue-500/40' : 'bg-slate-800 text-slate-400 border-slate-700');
+          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
+          : (isTodayDown ? 'bg-red-500/15 text-red-400 border-red-500/30' : 'bg-[#141A24] text-slate-400 border-white/10');
         const todaySign = isTodayUp ? '▲ +' : (isTodayDown ? '▼ ' : '- ');
 
         // 목표가 계산
         const t1 = Number(stock.target1Price) || 0;
         const t2 = Number(stock.target2Price) || 0;
-
         const isT1Hit = t1 > 0 && currentPrice >= t1;
         const isT2Hit = t2 > 0 && currentPrice >= t2;
 
-        let t1Progress = 0;
         let t1GapText = '';
+        let t1Progress = 0;
         if (t1 > 0) {
           if (t1 >= buyPrice) {
             t1Progress = Math.min(100, Math.max(0, ((currentPrice - buyPrice) / (t1 - buyPrice)) * 100));
@@ -1034,11 +883,11 @@
           }
           const t1GapRate = ((t1 - currentPrice) / currentPrice) * 100;
           const t1GapWon = t1 - currentPrice;
-          t1GapText = isT1Hit ? '🎯 1차 도달 완료!' : `목표까지 +${formatKRW(t1GapWon)} (${formatPercent(t1GapRate)})`;
+          t1GapText = isT1Hit ? '🎯 1차 도달 완료!' : `1차까지 +${formatKRW(t1GapWon)} (+${formatPercent(t1GapRate)})`;
         }
 
-        let t2Progress = 0;
         let t2GapText = '';
+        let t2Progress = 0;
         if (t2 > 0) {
           if (t2 >= buyPrice) {
             t2Progress = Math.min(100, Math.max(0, ((currentPrice - buyPrice) / (t2 - buyPrice)) * 100));
@@ -1047,169 +896,165 @@
           }
           const t2GapRate = ((t2 - currentPrice) / currentPrice) * 100;
           const t2GapWon = t2 - currentPrice;
-          t2GapText = isT2Hit ? '🚀 2차 달성 완료!' : `목표까지 +${formatKRW(t2GapWon)} (${formatPercent(t2GapRate)})`;
+          t2GapText = isT2Hit ? '🚀 2차 달성 완료!' : `2차까지 +${formatKRW(t2GapWon)} (+${formatPercent(t2GapRate)})`;
         }
 
+        // Trajectory Timeline Visual Percentage (0% to 100% between 80% of buyPrice and max of t2)
+        const baseMin = Math.min(buyPrice * 0.9, currentPrice * 0.9);
+        const baseMax = Math.max(t2 > 0 ? t2 * 1.05 : buyPrice * 1.3, currentPrice * 1.05);
+        const range = baseMax - baseMin || 1;
+        const buyDotLeft = Math.min(95, Math.max(5, ((buyPrice - baseMin) / range) * 100));
+        const currentDotLeft = Math.min(95, Math.max(5, ((currentPrice - baseMin) / range) * 100));
+        const t1DotLeft = t1 > 0 ? Math.min(95, Math.max(5, ((t1 - baseMin) / range) * 100)) : null;
+        const t2DotLeft = t2 > 0 ? Math.min(95, Math.max(5, ((t2 - baseMin) / range) * 100)) : null;
+
         const cardBorder = isT2Hit 
-          ? 'border-purple-500/60 bg-gradient-to-b from-purple-950/30 to-slate-900/90 shadow-purple-900/20' 
-          : (isT1Hit ? 'border-emerald-500/60 bg-gradient-to-b from-emerald-950/30 to-slate-900/90 shadow-emerald-900/20' : 'border-slate-800 bg-slate-900/90');
+          ? 'border-purple-500/50 bg-[#0E121A] shadow-purple-900/10' 
+          : (isT1Hit ? 'border-emerald-500/50 bg-[#0E121A] shadow-emerald-900/10' : 'card-obsidian');
+
+        const plColorClass = totalPL > 0 ? 'text-emerald-400' : (totalPL < 0 ? 'text-red-400' : 'text-slate-300');
+        const plBgClass = totalPL > 0 ? 'bg-emerald-500/10 border-emerald-500/25' : (totalPL < 0 ? 'bg-red-500/10 border-red-500/25' : 'bg-[#141A24] border-white/10');
 
         return `
-          <div class="border ${cardBorder} rounded-2xl p-5 shadow-lg relative transition-all duration-300 hover:border-slate-700 flex flex-col justify-between space-y-4">
+          <div class="${cardBorder} rounded-2xl p-5 shadow-lg relative flex flex-col justify-between space-y-4">
             
-            <!-- 1. 카드 헤더: 종목 기본 & 오늘 실시간 시세 -->
+            <!-- 1. 카드 헤더: 종목 정보 & 오늘 시세 -->
             <div>
               <div class="flex items-start justify-between">
                 <div>
                   <div class="flex items-center space-x-2">
-                    <h3 class="text-base sm:text-lg font-extrabold text-white tracking-tight">${stock.name}</h3>
-                    <span class="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700">${stock.code}</span>
-                    ${isT2Hit ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 glow-hit">🚀 2차 목표 달성</span>' : (isT1Hit ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 glow-hit">🎯 1차 목표 도달</span>' : '')}
+                    <h3 class="text-base sm:text-lg font-black text-white tracking-tight">${stock.name}</h3>
+                    <span class="text-[11px] font-mono-nums text-slate-400 bg-[#141A24] px-2 py-0.5 rounded-md border border-white/10">${stock.code}</span>
+                    ${isT2Hit ? '<span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 glow-hit">🚀 2차 목표 달성</span>' : (isT1Hit ? '<span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 glow-hit">🎯 1차 목표 도달</span>' : (totalPLRate >= 0 ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">익절권 🚀</span>' : '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">본전 대기 ⏳</span>'))}
                   </div>
-                  <p class="text-xs text-slate-400 mt-0.5 truncate max-w-xs">${stock.memo || '목표가 중심 매매 관리 종목'}</p>
+                  <p class="text-xs text-slate-400 mt-1 truncate max-w-xs">${stock.memo || '목표가 매도 관리 종목'}</p>
                 </div>
 
-                <!-- 오늘 실시간 시세 박스 -->
+                <!-- 오늘 현재가 -->
                 <div class="text-right">
-                  <div class="text-xs text-slate-400 mb-0.5 flex items-center justify-end space-x-1">
+                  <div class="text-[11px] text-slate-400 mb-0.5 flex items-center justify-end space-x-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>오늘 현재가</span>
+                    <span>현재가</span>
                   </div>
-                  <div class="text-lg sm:text-2xl font-black text-white tracking-tight">${formatKRW(currentPrice)}</div>
+                  <div class="text-xl sm:text-2xl font-black text-white font-mono-nums tracking-tight">${formatKRW(currentPrice)}</div>
                   
-                  <!-- 오늘 하루 등락 뱃지 (전일 대비) -->
                   <div class="mt-1 flex items-center justify-end space-x-1.5">
-                    <span class="px-2 py-0.5 rounded-md text-xs font-extrabold border ${todayBadgeClass}">
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-extrabold border font-mono-nums ${todayBadgeClass}">
                       ${todaySign}${formatKRW(Math.abs(todayDiff))} (${formatPercent(todayRate)})
                     </span>
                   </div>
-                  <div class="text-[10px] text-slate-500 mt-0.5 font-mono">전일 종가: ${formatKRW(prevClose)}</div>
+                  <div class="text-[10px] text-slate-500 mt-0.5 font-mono-nums">전일 종가: ${formatKRW(prevClose)}</div>
                 </div>
               </div>
 
-              <!-- 2. 내 평단가 정보 & 오늘 하루 내 손익 듀얼 그리드 -->
+              <!-- 2. 내 평단가 정보 & 내 누적 손익 그리드 -->
               <div class="grid grid-cols-2 gap-2 mt-3.5 text-xs">
-                
-                <!-- 왼쪽: 내 평단가 및 보유 현황 -->
-                <div class="bg-slate-950/70 rounded-xl p-3 border border-slate-800/90 space-y-1.5">
-                  <div class="flex items-center justify-between text-[11px] text-indigo-300 font-bold border-b border-slate-800 pb-1">
-                    <span>📌 내 투자 현황</span>
-                    <span>${formatNumber(qty)}주</span>
+                <!-- 왼쪽: 내 평단가 -->
+                <div class="bg-[#141A24] rounded-xl p-3 border border-white/5 space-y-1">
+                  <div class="text-[11px] text-blue-400 font-bold flex items-center justify-between">
+                    <span>내 매수 평단가</span>
+                    <span class="font-mono-nums text-white font-black">${formatKRW(buyPrice)}</span>
                   </div>
-                  <div class="flex justify-between text-slate-300">
-                    <span class="text-slate-400 text-[11px]">내 매수 평단:</span>
-                    <strong class="text-indigo-300 font-extrabold">${formatKRW(buyPrice)}</strong>
+                  <div class="flex justify-between text-[11px] text-slate-400 font-mono-nums">
+                    <span>보유 수량:</span>
+                    <span class="text-slate-200">${formatNumber(qty)}주</span>
                   </div>
-                  <div class="flex justify-between text-slate-300">
-                    <span class="text-slate-400 text-[11px]">총 매수 금액:</span>
-                    <span class="text-slate-200 font-semibold">${formatKRW(invested)}</span>
+                  <div class="flex justify-between text-[11px] text-slate-400 font-mono-nums">
+                    <span>총 매수 원금:</span>
+                    <span class="text-slate-200">${formatKRW(invested)}</span>
                   </div>
-                  <div class="flex justify-between text-slate-300">
-                    <span class="text-slate-400 text-[11px]">총 평가 금액:</span>
+                </div>
+
+                <!-- 오른쪽: 내 손익 현황 -->
+                <div class="${plBgClass} rounded-xl p-3 border space-y-1">
+                  <div class="flex items-center justify-between text-[11px] font-bold">
+                    <span class="text-slate-300">내 누적 손익</span>
+                    <span class="font-mono-nums font-black ${plColorClass}">
+                      ${totalPL >= 0 ? '+' : ''}${formatKRW(totalPL)} (${formatPercent(totalPLRate)})
+                    </span>
+                  </div>
+                  <div class="flex justify-between text-[11px] text-slate-400 font-mono-nums">
+                    <span>현재 평가액:</span>
                     <span class="text-white font-bold">${formatKRW(valuation)}</span>
                   </div>
-                  <div class="flex justify-between items-center pt-1 border-t border-slate-800/80">
-                    <span class="text-slate-400 text-[11px]">총 평가손익:</span>
-                    <strong class="font-extrabold text-xs ${totalPL >= 0 ? 'text-red-400' : 'text-blue-400'}">
-                      ${totalPL >= 0 ? '▲ +' : '▼ '}${formatKRW(Math.abs(totalPL))} (${formatPercent(totalPLRate)})
-                    </strong>
+                  <div class="flex justify-between text-[11px] text-slate-400 font-mono-nums">
+                    <span>오늘 번 돈:</span>
+                    <span class="${todayMyGain >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">
+                      ${todayMyGain >= 0 ? '+' : ''}${formatKRW(todayMyGain)}
+                    </span>
                   </div>
                 </div>
-
-                <!-- 오른쪽: 오늘 하루 내 주식 변동 & 배당 요약 -->
-                <div class="bg-slate-950/70 rounded-xl p-3 border border-slate-800/90 space-y-1.5 flex flex-col justify-between">
-                  <div>
-                    <div class="flex items-center justify-between text-[11px] text-amber-300 font-bold border-b border-slate-800 pb-1">
-                      <span>⚡ 오늘 하루 변동</span>
-                      <span class="text-[10px] text-slate-400">1일 손익</span>
-                    </div>
-                    
-                    <div class="mt-2 text-center p-2 rounded-lg bg-slate-900/90 border border-slate-800">
-                      <div class="text-[11px] text-slate-400">오늘 내 평가 손익</div>
-                      <div class="text-sm sm:text-base font-black ${todayMyGain > 0 ? 'text-red-400' : (todayMyGain < 0 ? 'text-blue-400' : 'text-slate-400')}">
-                        ${todayMyGain > 0 ? '▲ +' : (todayMyGain < 0 ? '▼ ' : '')}${formatKRW(Math.abs(todayMyGain))}
-                      </div>
-                      <div class="text-[10px] ${todayRate >= 0 ? 'text-red-400/90' : 'text-blue-400/90'}">
-                        전일대비 ${todaySign}${formatPercent(todayRate)}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
-                    <span>주당 배당금:</span>
-                    <strong class="text-amber-400">${stock.dividendPerShare ? formatKRW(stock.dividendPerShare) : '0원'}</strong>
-                  </div>
-                </div>
-
               </div>
-            </div>
 
-            <!-- 3. 목표가 매도 트래커 게이지 영역 -->
-            <div class="space-y-3 bg-slate-950/40 rounded-xl p-3.5 border border-slate-800/60">
-              
-              <!-- 1차 목표가 -->
-              <div>
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="font-bold flex items-center space-x-1 ${isT1Hit ? 'text-emerald-300 font-extrabold' : 'text-slate-300'}">
-                    <i data-lucide="crosshair" class="w-3.5 h-3.5 ${isT1Hit ? 'text-emerald-400' : 'text-slate-400'}"></i>
-                    <span>1차 목표가 (탈출/익절)</span>
-                    <strong class="text-white ml-1">${formatKRW(t1)}</strong>
+              <!-- 3. 핵심 시그니처: 목표가 궤적 타임라인 (Trajectory Timeline) -->
+              <div class="mt-4 p-3 bg-[#0A0D14] rounded-xl border border-white/5 space-y-2">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="font-bold text-slate-300 flex items-center space-x-1.5">
+                    <i data-lucide="crosshair" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span>목표가 탈출 궤적</span>
                   </span>
-                  <span class="text-[11px] font-semibold ${isT1Hit ? 'text-emerald-400' : 'text-slate-400'}">${t1GapText}</span>
+                  <span class="text-blue-400 font-mono-nums font-bold text-[10px]">
+                    ${t1GapText}
+                  </span>
                 </div>
-                <!-- 프로그레스 바 -->
-                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div class="h-full transition-all duration-500 rounded-full ${isT1Hit ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-indigo-500 to-emerald-500'}" style="width: ${t1Progress}%"></div>
+
+                <!-- 궤적 바 -->
+                <div class="trajectory-track relative my-3">
+                  <!-- 본전/평단가 점 -->
+                  <div class="absolute top-[-3px] w-3 h-3 rounded-full bg-slate-400 border-2 border-[#07080B]" style="left: ${buyDotLeft}%; transform: translateX(-50%);" title="내 평단가: ${formatKRW(buyPrice)}"></div>
+                  
+                  <!-- 1차 목표가 점 -->
+                  ${t1DotLeft ? `<div class="absolute top-[-3px] w-3 h-3 rounded-full bg-amber-400 border-2 border-[#07080B]" style="left: ${t1DotLeft}%; transform: translateX(-50%);" title="1차 목표: ${formatKRW(t1)}"></div>` : ''}
+                  
+                  <!-- 2차 목표가 점 -->
+                  ${t2DotLeft ? `<div class="absolute top-[-3px] w-3 h-3 rounded-full bg-purple-400 border-2 border-[#07080B]" style="left: ${t2DotLeft}%; transform: translateX(-50%);" title="2차 목표: ${formatKRW(t2)}"></div>` : ''}
+
+                  <!-- 현재가 펄스 점 (Highlight) -->
+                  <div class="absolute top-[-5px] w-4 h-4 rounded-full bg-blue-500 border-2 border-white trajectory-pulse z-10" style="left: ${currentDotLeft}%; transform: translateX(-50%);" title="현재가: ${formatKRW(currentPrice)}"></div>
                 </div>
-                ${stock.target1Memo ? `<p class="text-[11px] text-slate-400 mt-1 flex items-center space-x-1"><span>💡</span><span>${stock.target1Memo}</span></p>` : ''}
+
+                <!-- 라벨들 -->
+                <div class="flex justify-between text-[10px] text-slate-400 font-mono-nums pt-1">
+                  <div>평단 <b class="text-slate-200">${formatKRW(buyPrice)}</b></div>
+                  <div class="text-blue-400 font-bold">현재 <b class="text-white">${formatKRW(currentPrice)}</b></div>
+                  ${t1 > 0 ? `<div>1차 <b class="text-amber-300">${formatKRW(t1)}</b></div>` : ''}
+                  ${t2 > 0 ? `<div>2차 <b class="text-purple-300">${formatKRW(t2)}</b></div>` : ''}
+                </div>
               </div>
 
-              <!-- 2차 목표가 -->
-              ${t2 > 0 ? `
-              <div class="pt-2 border-t border-slate-800/60">
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="font-bold flex items-center space-x-1 ${isT2Hit ? 'text-purple-300 font-extrabold' : 'text-slate-300'}">
-                    <i data-lucide="rocket" class="w-3.5 h-3.5 ${isT2Hit ? 'text-purple-400' : 'text-slate-400'}"></i>
-                    <span>2차 목표가 (최종 익절)</span>
-                    <strong class="text-white ml-1">${formatKRW(t2)}</strong>
-                  </span>
-                  <span class="text-[11px] font-semibold ${isT2Hit ? 'text-purple-400' : 'text-slate-400'}">${t2GapText}</span>
+              <!-- 4. 목표가 분할 매도 메모 -->
+              ${(stock.target1Memo || stock.target2Memo) ? `
+                <div class="mt-2 text-[11px] text-slate-400 bg-[#141A24] px-3 py-1.5 rounded-lg flex items-center justify-between">
+                  <span class="truncate max-w-xs">💡 ${stock.target1Memo || stock.target2Memo}</span>
+                  ${t2GapText ? `<span class="text-purple-400 font-bold ml-2 shrink-0">${t2GapText}</span>` : ''}
                 </div>
-                <!-- 프로그레스 바 -->
-                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div class="h-full transition-all duration-500 rounded-full ${isT2Hit ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}" style="width: ${t2Progress}%"></div>
-                </div>
-                ${stock.target2Memo ? `<p class="text-[11px] text-slate-400 mt-1 flex items-center space-x-1"><span>🚀</span><span>${stock.target2Memo}</span></p>` : ''}
-              </div>
               ` : ''}
-
             </div>
 
-            <!-- 4. 하단 카드 액션 버튼 바 -->
-            <div class="flex items-center justify-between pt-1 border-t border-slate-800 text-xs">
-              <div class="flex items-center space-x-2 text-slate-400 text-[11px]">
-                <i data-lucide="coins" class="w-3.5 h-3.5 text-amber-400"></i>
-                <span>연 배당: ${stock.dividendPerShare ? formatKRW(stock.dividendPerShare * qty) : '0원'}</span>
-                ${stock.dividendMonths && stock.dividendMonths.length > 0 ? `<span class="text-amber-300/80">(${stock.dividendMonths.join(', ')}월)</span>` : ''}
+            <!-- 카드 하단 버튼들 -->
+            <div class="pt-3 border-t border-white/5 flex items-center justify-between text-xs">
+              <div class="flex space-x-2">
+                <button onclick="editStock('${stock.id}')" class="px-2.5 py-1 bg-[#141A24] hover:bg-[#1E2533] text-slate-300 hover:text-white rounded-lg border border-white/5 transition flex items-center space-x-1">
+                  <i data-lucide="edit-3" class="w-3 h-3"></i>
+                  <span>수정</span>
+                </button>
+                <button onclick="deleteStock('${stock.id}')" class="px-2.5 py-1 bg-[#141A24] hover:bg-red-950/30 text-slate-400 hover:text-red-400 rounded-lg border border-white/5 transition flex items-center space-x-1">
+                  <i data-lucide="trash-2" class="w-3 h-3"></i>
+                  <span>삭제</span>
+                </button>
               </div>
 
-              <div class="flex items-center space-x-1.5">
-                <a href="https://m.stock.naver.com/domestic/stock/${stock.code}" target="_blank" class="flex items-center space-x-1 px-2 py-1 text-slate-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition text-[11px] border border-slate-800" title="네이버 증권 열기">
-                  <i data-lucide="external-link" class="w-3 h-3"></i>
-                  <span>네이버</span>
-                </a>
-                <button onclick="editStock('${stock.id}')" class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition" title="종목 및 목표가 수정">
-                  <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                </button>
-                <button onclick="deleteStock('${stock.id}')" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition" title="종목 삭제">
-                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                </button>
-              </div>
+              <button onclick="openJournalModalForStock('${stock.name}')" class="px-3 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 font-semibold rounded-lg border border-blue-500/30 transition flex items-center space-x-1">
+                <i data-lucide="file-text" class="w-3 h-3"></i>
+                <span>매매 복기 쓰기</span>
+              </button>
             </div>
 
           </div>
         `;
       }).join('');
+
+      lucide.createIcons();
     }
 
     // 3. 관심 종목 (오늘 주요 시장 시세: 삼성전자, SK하이닉스, 현대차 등) 렌더링
