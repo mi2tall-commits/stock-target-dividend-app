@@ -12,6 +12,13 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  // GitHub Pages 등 외부 웹에서 당일 분봉 차트 데이터 조회 시 JSON 응답 반환
+  if (e && e.parameter && e.parameter.action === 'minutechart') {
+    var result = fetchMinuteChartData(e.parameter.symbol || '');
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   var template = HtmlService.createTemplateFromFile('index');
   var htmlOutput = template.evaluate()
     .setTitle('내 평단가 맞춤형 목표가 매도 & 배당 캘린더')
@@ -54,7 +61,31 @@ function fetchStockPrice(symbol) {
         var changePrice = Math.abs(diff) * sign;
         var changeRate = Math.abs(rate) * sign;
         var prevClose = price - changePrice;
-        
+
+        // 당일 누적 거래량 / 거래대금 조회 (실패해도 시세 조회 자체는 성공 처리)
+        var todayVolume = '';
+        var todayTradingValue = '';
+        try {
+          var infoUrl = 'https://m.stock.naver.com/api/stock/' + cleanSymbol + '/integration';
+          var infoResponse = UrlFetchApp.fetch(infoUrl, {
+            muteHttpExceptions: true,
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+          });
+          if (infoResponse.getResponseCode() === 200) {
+            var infoData = JSON.parse(infoResponse.getContentText());
+            var totalInfos = infoData.totalInfos || [];
+            for (var i = 0; i < totalInfos.length; i++) {
+              if (totalInfos[i].code === 'accumulatedTradingVolume') {
+                todayVolume = totalInfos[i].value;
+              } else if (totalInfos[i].code === 'accumulatedTradingValue') {
+                todayTradingValue = totalInfos[i].value;
+              }
+            }
+          }
+        } catch (e2) {
+          Logger.log('Naver integration fetch error for ' + cleanSymbol + ': ' + e2);
+        }
+
         return {
           success: true,
           symbol: cleanSymbol,
@@ -64,6 +95,8 @@ function fetchStockPrice(symbol) {
           todayChangeRate: changeRate,   // 오늘 전일대비 등락률 (%)
           prevClosePrice: prevClose,     // 전일 종가
           marketStatus: data.marketStatus || 'OPEN',
+          todayVolume: todayVolume,             // 당일 누적 거래량 (주, 콤마 포맷 문자열)
+          todayTradingValue: todayTradingValue, // 당일 누적 거래대금 (콤마/조·억 포맷 문자열)
           updatedAt: new Date().toLocaleTimeString('ko-KR')
         };
       }
@@ -71,8 +104,77 @@ function fetchStockPrice(symbol) {
       Logger.log('Naver stock fetch error for ' + cleanSymbol + ': ' + e);
     }
   }
-  
+
   return { success: false, symbol: cleanSymbol, message: '시세를 불러올 수 없습니다.' };
+}
+
+// 당일 1분봉(분 단위 체결가/거래량) 조회 - 네이버 fchart API 활용
+function fetchMinuteChartData(symbol) {
+  if (!symbol) return { success: false, message: '종목 코드가 없습니다.' };
+  var cleanSymbol = symbol.trim().replace(/[^0-9a-zA-Z]/g, '');
+
+  if (!/^\d{6}$/.test(cleanSymbol)) {
+    return { success: false, symbol: cleanSymbol, message: '유효하지 않은 종목 코드입니다.' };
+  }
+
+  try {
+    var url = 'https://fchart.stock.naver.com/sise.nhn?symbol=' + cleanSymbol + '&timeframe=minute&count=1000&requestType=0';
+    var response = UrlFetchApp.fetch(url, {
+      muteHttpExceptions: true,
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    });
+
+    if (response.getResponseCode() !== 200) {
+      return { success: false, symbol: cleanSymbol, message: '분봉 데이터를 불러올 수 없습니다.' };
+    }
+
+    var xml = response.getContentText();
+    var itemRegex = /<item data="([^"]+)"\s*\/>/g;
+    var match;
+    var rows = [];
+    while ((match = itemRegex.exec(xml)) !== null) {
+      var parts = match[1].split('|');
+      var dateTime = parts[0]; // YYYYMMDDHHmm
+      var close = parseFloat(parts[4]);
+      var cumVolume = parseFloat(parts[5]);
+      if (dateTime && !isNaN(close)) {
+        rows.push({ dateTime: dateTime, close: close, cumVolume: isNaN(cumVolume) ? 0 : cumVolume });
+      }
+    }
+
+    if (rows.length === 0) {
+      return { success: false, symbol: cleanSymbol, message: '분봉 데이터가 없습니다.' };
+    }
+
+    // 가장 최근 데이터의 날짜(=최근 거래일, 당일) 기준으로 필터링
+    var latestDate = rows[rows.length - 1].dateTime.substring(0, 8);
+    var todayRows = rows.filter(function(r) { return r.dateTime.substring(0, 8) === latestDate; });
+
+    var items = [];
+    var prevCum = 0;
+    for (var j = 0; j < todayRows.length; j++) {
+      var r = todayRows[j];
+      var hh = r.dateTime.substring(8, 10);
+      var mm = r.dateTime.substring(10, 12);
+      var minuteVolume = Math.max(0, r.cumVolume - prevCum);
+      prevCum = r.cumVolume;
+      items.push({
+        time: hh + ':' + mm,
+        price: r.close,
+        volume: minuteVolume
+      });
+    }
+
+    return {
+      success: true,
+      symbol: cleanSymbol,
+      date: latestDate,
+      items: items
+    };
+  } catch (e) {
+    Logger.log('Naver minute chart fetch error for ' + cleanSymbol + ': ' + e);
+    return { success: false, symbol: cleanSymbol, message: '분봉 데이터를 불러오는 중 오류가 발생했습니다.' };
+  }
 }
 
 // 여러 종목 일괄 시세 갱신
