@@ -488,6 +488,32 @@
     </div>
   </div>
 
+  <!-- Minute Chart Modal (내 보유 종목 당일 분봉) -->
+  <div id="minute-chart-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#0E121A] border border-white/15 rounded-2xl max-w-2xl w-full p-5 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-white/10">
+        <h3 id="minute-chart-title" class="text-base font-extrabold text-white flex items-center space-x-2">
+          <i data-lucide="activity" class="w-4 h-4 text-blue-400"></i>
+          <span>당일 분봉 차트</span>
+        </h3>
+        <button onclick="closeMinuteChartModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="flex items-center justify-between text-[11px] text-slate-400">
+        <span id="minute-chart-subtitle">종목코드</span>
+        <span id="minute-chart-updated"></span>
+      </div>
+      <div class="h-64 sm:h-80 w-full relative">
+        <canvas id="minuteChart"></canvas>
+        <div id="minute-chart-loading" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400 bg-[#0E121A]/70 rounded-xl">
+          <span>분봉 데이터를 불러오는 중...</span>
+        </div>
+        <div id="minute-chart-empty" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-500 bg-[#0E121A]/70 rounded-xl text-center px-6">
+          <span>당일 분봉 데이터를 불러올 수 없습니다.<br>(장 시작 전이거나 시세 제공이 지연될 수 있습니다)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div id="toast" class="fixed bottom-6 right-6 z-50 bg-[#141A24] border border-white/15 text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-bold transition-all duration-300 opacity-0 pointer-events-none flex items-center space-x-2">
     <span id="toast-icon">✓</span>
@@ -568,6 +594,7 @@
     let dividendChartInstance = null;
     let selectedMonths = [];
     let currentJournalFilter = 'ALL';
+    let minuteChartInstance = null;
 
     // -------------------------------------------------------------
     // FORMATTING UTILITIES
@@ -725,7 +752,9 @@
             currentPrice: base,
             todayChangePrice: 0,
             todayChangeRate: 0,
-            prevClosePrice: base
+            prevClosePrice: base,
+            todayVolume: '1,234,567',
+            todayTradingValue: '1,234억'
           };
         }
       });
@@ -902,6 +931,8 @@
                     </span>
                   </div>
                   <div class="text-[10px] text-slate-500 mt-0.5 font-mono-nums">전일 종가: ${formatKRW(prevClose)}</div>
+                  ${live && live.todayVolume ? `<div class="text-[10px] text-slate-500 mt-0.5 font-mono-nums">거래량: ${live.todayVolume}주</div>` : ''}
+                  ${live && live.todayTradingValue ? `<div class="text-[10px] text-slate-500 font-mono-nums">거래대금: ${live.todayTradingValue}원</div>` : ''}
                 </div>
               </div>
 
@@ -988,6 +1019,10 @@
                   <i data-lucide="trash-2" class="w-3 h-3"></i>
                   <span>삭제</span>
                 </button>
+                <button onclick="openMinuteChartModal('${stock.id}')" class="px-2.5 py-1 bg-[#141A24] hover:bg-[#1E2533] text-slate-300 hover:text-blue-300 rounded-lg border border-white/5 transition flex items-center space-x-1" title="당일 분봉 차트 보기">
+                  <i data-lucide="activity" class="w-3 h-3"></i>
+                  <span>분봉</span>
+                </button>
               </div>
 
               <button onclick="openJournalModalForStock('${stock.name}')" class="px-3 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 font-semibold rounded-lg border border-blue-500/30 transition flex items-center space-x-1">
@@ -1032,6 +1067,7 @@
                 <div class="text-[10px] font-bold font-mono-nums ${todayDiff >= 0 ? 'text-emerald-400' : 'text-red-400'}">
                   ${todayDiff >= 0 ? '+' : ''}${formatKRW(todayDiff)} (${formatPercent(todayRate)})
                 </div>
+                ${live && live.todayVolume ? `<div class="text-[10px] text-slate-500 mt-0.5 font-mono-nums">거래량 ${live.todayVolume}주</div>` : ''}
               </div>
             </div>
             <div class="flex justify-end pt-2 border-t border-white/5">
@@ -1040,6 +1076,141 @@
           </div>
         `;
       }).join('');
+    }
+
+    // -------------------------------------------------------------
+    // 당일 분봉 차트 (내 보유 종목 전용)
+    // -------------------------------------------------------------
+    function openMinuteChartModal(stockId) {
+      const stock = (appData.stocks || []).find(s => s.id === stockId);
+      if (!stock) return;
+
+      document.getElementById('minute-chart-title').innerHTML =
+        `<i data-lucide="activity" class="w-4 h-4 text-blue-400"></i><span>${stock.name} 당일 분봉 차트</span>`;
+      document.getElementById('minute-chart-subtitle').textContent = stock.code + ' · 1분 단위 체결가 & 거래량';
+      document.getElementById('minute-chart-updated').textContent = '';
+
+      document.getElementById('minute-chart-modal').classList.remove('hidden');
+      document.getElementById('minute-chart-loading').classList.remove('hidden');
+      document.getElementById('minute-chart-empty').classList.add('hidden');
+      lucide.createIcons();
+
+      loadMinuteChartData(stock.code);
+    }
+
+    function closeMinuteChartModal() {
+      document.getElementById('minute-chart-modal').classList.add('hidden');
+    }
+
+    function loadMinuteChartData(code) {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler((result) => renderMinuteChart(result))
+          .withFailureHandler(() => fetchMinuteChartViaWeb(code))
+          .fetchMinuteChartData(code);
+      } else {
+        fetchMinuteChartViaWeb(code);
+      }
+    }
+
+    function fetchMinuteChartViaWeb(code) {
+      const url = GAS_API_URL + '?action=minutechart&symbol=' + code;
+      fetch(url)
+        .then(res => res.json())
+        .then(result => renderMinuteChart(result))
+        .catch(err => {
+          console.warn('Minute chart fetch error:', err);
+          renderMinuteChart({ success: false });
+        });
+    }
+
+    function renderMinuteChart(result) {
+      const loadingEl = document.getElementById('minute-chart-loading');
+      const emptyEl = document.getElementById('minute-chart-empty');
+      loadingEl.classList.add('hidden');
+
+      if (!result || !result.success || !result.items || result.items.length === 0) {
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      document.getElementById('minute-chart-updated').textContent = '최근 갱신: ' + new Date().toLocaleTimeString('ko-KR');
+
+      const labels = result.items.map(it => it.time);
+      const prices = result.items.map(it => it.price);
+      const volumes = result.items.map(it => it.volume);
+
+      if (minuteChartInstance) {
+        minuteChartInstance.destroy();
+        minuteChartInstance = null;
+      }
+
+      const ctx = document.getElementById('minuteChart');
+      if (!ctx || typeof Chart === 'undefined') return;
+
+      minuteChartInstance = new Chart(ctx, {
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: 'line',
+              label: '현재가',
+              data: prices,
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.12)',
+              borderWidth: 2,
+              pointRadius: 0,
+              tension: 0.15,
+              yAxisID: 'yPrice',
+              fill: true,
+              order: 1
+            },
+            {
+              type: 'bar',
+              label: '거래량',
+              data: volumes,
+              backgroundColor: 'rgba(148, 163, 184, 0.45)',
+              yAxisID: 'yVolume',
+              barPercentage: 1.0,
+              categoryPercentage: 1.0,
+              order: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { labels: { color: '#cbd5e1', font: { size: 10 } } },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  if (ctx.dataset.label === '현재가') return '현재가: ' + formatKRW(ctx.parsed.y);
+                  return '거래량: ' + formatNumber(ctx.parsed.y) + '주';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', maxTicksLimit: 8, font: { size: 9 } },
+              grid: { color: 'rgba(148, 163, 184, 0.1)' }
+            },
+            yPrice: {
+              position: 'left',
+              ticks: { color: '#94a3b8', font: { size: 9 }, callback: (v) => formatNumber(v) },
+              grid: { color: 'rgba(148, 163, 184, 0.1)' }
+            },
+            yVolume: {
+              position: 'right',
+              ticks: { color: '#64748b', font: { size: 9 }, callback: (v) => formatNumber(v) },
+              grid: { display: false }
+            }
+          }
+        }
+      });
     }
 
     function renderDividendTab() {
