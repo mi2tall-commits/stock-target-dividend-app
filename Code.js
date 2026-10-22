@@ -202,14 +202,14 @@ function getInitialSampleData() {
         name: '금호건설',
         code: '002990',
         currency: 'KRW',
-        buyPrice: 19500,     // 내 평단가 (19,500원)
-        quantity: 300,        // 보유 수량 (300주)
+        buyPrice: 19760,     // 내 실제 매수 평단가
+        quantity: 660,        // 내 실제 보유 수량
         target1Price: 19500,  // 1차 목표가 (본전 탈출)
-        target2Price: 22000,  // 2차 목표가 (익절 목표)
-        target1Memo: '평단가 19,500원 본전 탈출 (보유 비중 50% 분할 매도)',
+        target2Price: 22000,  // 2차 목표가 (익절)
+        target1Memo: '평단가 19,500원 본전 탈출 (50% 분할 매도)',
         target2Memo: '전고점 22,000원 도달 시 전량 익절 마무리',
-        dividendPerShare: 500, // 주당 배당금 (원)
-        dividendMonths: [4],   // 4월 배당
+        dividendPerShare: 500,
+        dividendMonths: [4],
         memo: '저평가 건설주 배당 및 수주 반등 기대'
       },
       {
@@ -217,36 +217,21 @@ function getInitialSampleData() {
         name: '제이엘케이',
         code: '322510',
         currency: 'KRW',
-        buyPrice: 6600,       // 내 평단가 (6,600원)
-        quantity: 1000,       // 보유 수량 (1000주)
-        target1Price: 7500,   // 1차 목표가 (+13.6%)
-        target2Price: 9000,   // 2차 목표가 (+36.4%)
-        target1Memo: '1차 저항선 7,500원 도달 시 원금 회수 절반 매도',
-        target2Memo: 'AI 의료 FDA 승인 모멘텀 9,000원 전량 익절',
+        buyPrice: 6617,       // 내 실제 매수 평단가
+        quantity: 286,        // 내 실제 보유 수량
+        target1Price: 8000,   // 1차 목표가
+        target2Price: 12000,  // 2차 목표가
+        target1Memo: '1차 저항선 8,000원 도달 시 원금 회수 절반 매도',
+        target2Memo: 'AI 의료 FDA 승인 모멘텀 12,000원 전량 익절',
         dividendPerShare: 0,
         dividendMonths: [],
         memo: 'AI 의료 뇌졸중 솔루션 해외 진출 모멘텀'
       }
     ],
     watchlist: [
-      {
-        id: 'watch_1',
-        name: '삼성전자',
-        code: '005930',
-        memo: '반도체 대장주 / 시장 지수 영향'
-      },
-      {
-        id: 'watch_2',
-        name: 'SK하이닉스',
-        code: '000660',
-        memo: 'HBM AI 메모리 선도주'
-      },
-      {
-        id: 'watch_3',
-        name: '현대차',
-        code: '005380',
-        memo: '자동차 대표주 / 밸류업 & 배당'
-      }
+      { id: 'watch_1', name: '삼성전자', code: '005930', memo: '반도체 대표 대장주' },
+      { id: 'watch_2', name: 'SK하이닉스', code: '000660', memo: 'HBM AI 메모리 선도주' },
+      { id: 'watch_3', name: '현대차', code: '005380', memo: '완성차 대표 / 밸류업 & 배당' }
     ],
     journals: [
       {
@@ -254,24 +239,22 @@ function getInitialSampleData() {
         date: '2026-08-20',
         stockName: '금호건설',
         code: '002990',
-        type: '매수',
+        type: 'BUY',
         price: 16500,
         quantity: 50,
-        reason: '바닥 지지 확인 후 평단가(19,500원) 낮추기 위한 3차 분할 매수',
-        chartMemo: '일봉상 쌍바닥 형성, 거래량 점증 추세 확인. 16,000원 손절선 잡고 진입.',
-        sentiment: '원칙매매'
+        reason: '바닥 지지 확인 후 평단가(19,760원) 낮추기 위한 분할 매수',
+        sentiment: 'GOOD'
       },
       {
         id: 'j_2',
         date: '2026-08-10',
         stockName: '제이엘케이',
         code: '322510',
-        type: '매수',
-        price: 6600,
-        quantity: 500,
+        type: 'BUY',
+        price: 6617,
+        quantity: 286,
         reason: '의료 AI 급락 후 60일선 지지라인 반등 매수',
-        chartMemo: '60일 이평선 지지 확인 후 양봉 전환 시점에 분할 매수.',
-        sentiment: '계획진입'
+        sentiment: 'GOOD'
       }
     ]
   };
