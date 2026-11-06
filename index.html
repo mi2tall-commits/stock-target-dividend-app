@@ -789,20 +789,25 @@
         });
     }
 
+    // 시세 조회가 실패하면 가짜 가격을 넣지 않고 '조회 실패'로 표시한다. (이전에 받아 둔 실제 시세는 그대로 둔다)
     function fallbackLocalPrices(symbols) {
       symbols.forEach(s => {
-        if (!livePrices[s]) {
-          const stock = (appData.stocks || []).find(item => item.code === s);
-          const base = stock ? stock.buyPrice : 50000;
-          livePrices[s] = {
-            currentPrice: base,
-            todayChangePrice: 0,
-            todayChangeRate: 0,
-            prevClosePrice: base
-          };
-        }
+        if (!livePrices[s]) livePrices[s] = { error: true };
       });
       renderAll();
+    }
+
+    // 'ok' = 실제 시세 있음, 'error' = 조회했지만 실패, 'pending' = 아직 조회 전
+    function priceState(live) {
+      if (!live) return 'pending';
+      if (live.error || live.success === false || !(Number(live.currentPrice) > 0)) return 'error';
+      return 'ok';
+    }
+
+    function priceStatusLabel(state) {
+      return state === 'error'
+        ? '<span class="text-amber-400 text-sm">시세 조회 실패</span>'
+        : '<span class="text-slate-400 text-sm">시세 대기</span>';
     }
 
     // -------------------------------------------------------------
@@ -890,7 +895,10 @@
 
       container.innerHTML = appData.stocks.map(stock => {
         const live = livePrices[stock.code];
-        const currentPrice = live && live.currentPrice ? live.currentPrice : stock.buyPrice;
+        const pState = priceState(live);
+        const priceOk = pState === 'ok';
+        // 시세가 없으면 계산(궤적 표시 등)은 평단가 기준으로 하되, 화면의 현재가·손익은 '-'로 보여 준다
+        const currentPrice = priceOk ? live.currentPrice : stock.buyPrice;
         const qty = Number(stock.quantity) || 0;
         const buyPrice = Number(stock.buyPrice) || 0;
         const invested = qty * buyPrice;
@@ -967,7 +975,7 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span>현재가</span>
                   </div>
-                  <div class="text-xl sm:text-2xl font-black text-white font-mono-nums tracking-tight">${formatKRW(currentPrice)}</div>
+                  <div class="text-xl sm:text-2xl font-black text-white font-mono-nums tracking-tight">${priceOk ? formatKRW(currentPrice) : priceStatusLabel(pState)}</div>
                   
                   <div class="mt-1 flex items-center justify-end space-x-1.5">
                     <span class="px-2 py-0.5 rounded-md text-[11px] font-extrabold border font-mono-nums ${todayBadgeClass}">
@@ -1001,17 +1009,17 @@
                   <div class="flex items-center justify-between text-[11px] font-bold">
                     <span class="text-slate-300">내 누적 손익</span>
                     <span class="font-mono-nums font-black ${plColorClass}">
-                      ${totalPL >= 0 ? '+' : ''}${formatKRW(totalPL)} (${formatPercent(totalPLRate)})
+                      ${priceOk ? `${totalPL >= 0 ? '+' : ''}${formatKRW(totalPL)} (${formatPercent(totalPLRate)})` : '-'}
                     </span>
                   </div>
                   <div class="flex justify-between text-[11px] text-slate-400 font-mono-nums">
                     <span>현재 평가액:</span>
-                    <span class="text-white font-bold">${formatKRW(valuation)}</span>
+                    <span class="text-white font-bold">${priceOk ? formatKRW(valuation) : '-'}</span>
                   </div>
                   <div class="flex justify-between text-[11px] text-slate-400 font-mono-nums">
                     <span>오늘 번 돈:</span>
                     <span class="${todayMyGain >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold font-mono-nums">
-                      ${todayMyGain >= 0 ? '+' : ''}${formatKRW(todayMyGain)}
+                      ${priceOk ? `${todayMyGain >= 0 ? '+' : ''}${formatKRW(todayMyGain)}` : '-'}
                     </span>
                   </div>
                 </div>
@@ -1094,7 +1102,8 @@
 
       container.innerHTML = appData.watchlist.map(item => {
         const live = livePrices[item.code];
-        const currentPrice = live && live.currentPrice ? live.currentPrice : 0;
+        const pState = priceState(live);
+        const currentPrice = pState === 'ok' ? live.currentPrice : 0;
         const todayDiff = live && live.todayChangePrice !== undefined ? live.todayChangePrice : 0;
         const todayRate = live && live.todayChangeRate !== undefined ? live.todayChangeRate : 0;
 
@@ -1107,10 +1116,10 @@
                 <p class="text-[11px] text-slate-400 mt-1">${escapeHtml(item.memo || '관심 종목')}</p>
               </div>
               <div class="text-right">
-                <div class="text-base font-black text-white font-mono-nums">${currentPrice > 0 ? formatKRW(currentPrice) : '시세 대기'}</div>
-                <div class="text-[10px] font-bold font-mono-nums ${todayDiff >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+                <div class="text-base font-black text-white font-mono-nums">${currentPrice > 0 ? formatKRW(currentPrice) : (pState === 'error' ? '조회 실패' : '시세 대기')}</div>
+                ${currentPrice > 0 ? `<div class="text-[10px] font-bold font-mono-nums ${todayDiff >= 0 ? 'text-emerald-400' : 'text-red-400'}">
                   ${todayDiff >= 0 ? '+' : ''}${formatKRW(todayDiff)} (${formatPercent(todayRate)})
-                </div>
+                </div>` : ''}
                 ${live && live.todayVolume ? `<div class="text-[10px] text-slate-500 mt-0.5 font-mono-nums">거래량 ${escapeHtml(live.todayVolume)}주</div>` : ''}
               </div>
             </div>
