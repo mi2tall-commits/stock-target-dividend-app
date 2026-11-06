@@ -672,21 +672,35 @@
       refreshAllPrices();
     }
 
+    // 서버 값으로 바꿀지 결정한다. 둘 다 저장 시각(updatedAt)이 있으면 더 새로운 쪽을 쓴다.
+    // 시각이 없는 예전 데이터끼리는 기존 동작(서버 값에 종목이 있으면 서버 값)을 유지한다.
+    function shouldUseServerData(server, local) {
+      if (!server || typeof server !== 'object' || !Array.isArray(server.stocks)) return false;
+      const s = Number(server.updatedAt) || 0;
+      const l = Number(local && local.updatedAt) || 0;
+      if (s && l) return s > l;
+      if (s) return true;
+      if (l) return false;
+      return server.stocks.length > 0;
+    }
+
+    function applyServerData(data) {
+      if (!shouldUseServerData(data, appData)) return;
+      appData = normalizeAppData(data);
+      localStorage.setItem('MY_STOCK_APP_DATA_V3', JSON.stringify(appData));
+      renderAll();
+      refreshAllPrices();
+    }
+
     function loadData() {
       // 1. 0.01초 로컬 데이터 즉시 렌더링
       loadLocalData();
 
-      // 2. 백그라운드 구글 클라우드 최신 동기화
+      // 2. 백그라운드 구글 클라우드 최신 동기화 (로컬보다 새로울 때만 반영)
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
-          .withSuccessHandler((data) => {
-            if (data && data.stocks && data.stocks.length > 0) {
-              appData = data;
-              localStorage.setItem('MY_STOCK_APP_DATA_V3', JSON.stringify(appData));
-              renderAll();
-              refreshAllPrices();
-            }
-          })
+          .withSuccessHandler(applyServerData)
+          .withFailureHandler(err => console.warn('Cloud load error:', err))
           .loadAppData();
       } else {
         // GitHub Pages 환경
@@ -696,31 +710,43 @@
           body: JSON.stringify({ action: 'loadAppData' })
         })
         .then(res => res.json())
-        .then(data => {
-          if (data && data.stocks && data.stocks.length > 0) {
-            appData = data;
-            localStorage.setItem('MY_STOCK_APP_DATA_V3', JSON.stringify(appData));
-            renderAll();
-            refreshAllPrices();
-          }
-        })
+        .then(applyServerData)
         .catch(err => console.log('GitHub cloud sync status:', err));
       }
     }
 
     function persistData() {
+      appData.updatedAt = Date.now();
       localStorage.setItem('MY_STOCK_APP_DATA_V3', JSON.stringify(appData));
       renderAll();
-      showToast('변경 사항이 즉시 저장되었습니다! ⚡', 'success');
+      showToast('이 기기에 저장했습니다. 클라우드 저장 중…', 'success');
+
+      const onCloudResult = (res) => {
+        if (res && res.success) {
+          showToast('변경 사항이 클라우드까지 저장되었습니다! ⚡', 'success');
+        } else {
+          onCloudFail(res);
+        }
+      };
+      const onCloudFail = (err) => {
+        console.warn('Cloud save error:', err);
+        showToast('⚠ 클라우드 저장 실패 — 이 기기에만 저장되었습니다', 'error');
+      };
 
       if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.saveAppData(appData);
+        google.script.run
+          .withSuccessHandler(onCloudResult)
+          .withFailureHandler(onCloudFail)
+          .saveAppData(appData);
       } else {
         fetch(GAS_API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'saveAppData', payload: appData })
-        }).catch(err => console.warn('Cloud save error:', err));
+        })
+        .then(res => res.json())
+        .then(onCloudResult)
+        .catch(onCloudFail);
       }
     }
 

@@ -193,6 +193,13 @@ function fetchBatchStockPrices(symbols) {
 var STORAGE_KEY_PORTFOLIO = 'STOCK_APP_PORTFOLIO_V3';
 var STORAGE_KEY_JOURNAL = 'STOCK_APP_JOURNAL_V3';
 var STORAGE_KEY_WATCHLIST = 'STOCK_APP_WATCHLIST_V3';
+var STORAGE_KEY_UPDATED_AT = 'STOCK_APP_UPDATED_AT_V3';
+// PropertiesService 값 1개당 한도는 9KB. 넘으면 아무것도 쓰지 않고 실패를 알린다.
+var MAX_PROPERTY_BYTES = 9000;
+
+function utf8Bytes_(str) {
+  return encodeURIComponent(str).replace(/%[0-9A-F]{2}/g, 'x').length;
+}
 
 function getInitialSampleData() {
   return {
@@ -277,22 +284,32 @@ function loadAppData() {
   return {
     stocks: JSON.parse(rawPortfolio || '[]'),
     watchlist: JSON.parse(rawWatchlist || '[]'),
-    journals: JSON.parse(rawJournal || '[]')
+    journals: JSON.parse(rawJournal || '[]'),
+    updatedAt: Number(props.getProperty(STORAGE_KEY_UPDATED_AT)) || 0
   };
 }
 
 function saveAppData(data) {
   var props = PropertiesService.getUserProperties();
-  if (data.stocks) {
-    props.setProperty(STORAGE_KEY_PORTFOLIO, JSON.stringify(data.stocks));
+  var writes = [];
+  if (data.stocks) writes.push([STORAGE_KEY_PORTFOLIO, JSON.stringify(data.stocks), '보유 종목']);
+  if (data.watchlist) writes.push([STORAGE_KEY_WATCHLIST, JSON.stringify(data.watchlist), '관심 종목']);
+  if (data.journals) writes.push([STORAGE_KEY_JOURNAL, JSON.stringify(data.journals), '매매 일지']);
+
+  // 쓰기 전에 크기부터 확인한다(일부만 저장되는 일을 줄이기 위해)
+  for (var i = 0; i < writes.length; i++) {
+    var size = utf8Bytes_(writes[i][1]);
+    if (size > MAX_PROPERTY_BYTES) {
+      throw new Error(writes[i][2] + ' 데이터가 클라우드 저장 한도(9KB)를 넘었습니다: ' + size + ' bytes');
+    }
   }
-  if (data.watchlist) {
-    props.setProperty(STORAGE_KEY_WATCHLIST, JSON.stringify(data.watchlist));
+  for (var j = 0; j < writes.length; j++) {
+    props.setProperty(writes[j][0], writes[j][1]);
   }
-  if (data.journals) {
-    props.setProperty(STORAGE_KEY_JOURNAL, JSON.stringify(data.journals));
-  }
-  return { success: true, timestamp: new Date().toISOString() };
+  // 모든 값이 저장된 뒤에만 저장 시각을 올린다
+  var updatedAt = Number(data.updatedAt) || new Date().getTime();
+  props.setProperty(STORAGE_KEY_UPDATED_AT, String(updatedAt));
+  return { success: true, updatedAt: updatedAt, timestamp: new Date().toISOString() };
 }
 
 // 전체 초기 데이터 리셋 함수
