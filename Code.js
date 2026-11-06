@@ -296,7 +296,8 @@ function saveAppData(data) {
 }
 
 // 전체 초기 데이터 리셋 함수
-function resetAllAppData() {
+// 이름 끝의 '_' 때문에 google.script.run(브라우저)에서는 부를 수 없고, 편집기에서만 실행할 수 있다.
+function resetAllAppData_() {
   var initial = getInitialSampleData();
   var props = PropertiesService.getUserProperties();
   props.setProperty(STORAGE_KEY_PORTFOLIO, JSON.stringify(initial.stocks));
