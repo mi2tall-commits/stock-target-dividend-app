@@ -7,9 +7,9 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js for Dividend Visualization -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.6.1"></script>
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@1.69.0"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
     
@@ -623,6 +623,15 @@
       return escapeHtml(JSON.stringify(String(val === null || val === undefined ? '' : val)));
     }
 
+    // 아이콘 라이브러리(외부 CDN)를 못 불러와도 화면 그리기·저장이 멈추지 않게 한다
+    function createIconsSafe() {
+      try {
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      } catch (e) {
+        console.warn('lucide icons error:', e);
+      }
+    }
+
     function formatPercent(val) {
       if (val === null || val === undefined || isNaN(val)) return '0.00%';
       const sign = val > 0 ? '+' : '';
@@ -636,7 +645,7 @@
       renderMonthCheckboxes();
       initDateToday();
       loadData();
-      lucide.createIcons();
+      createIconsSafe();
     });
 
     function initDateToday() {
@@ -819,7 +828,7 @@
       renderWatchlistCards();
       renderDividendTab();
       renderJournalList();
-      lucide.createIcons();
+      createIconsSafe();
     }
 
     function renderSummaryCards() {
@@ -1146,7 +1155,7 @@
       document.getElementById('minute-chart-modal').classList.remove('hidden');
       document.getElementById('minute-chart-loading').classList.remove('hidden');
       document.getElementById('minute-chart-empty').classList.add('hidden');
-      lucide.createIcons();
+      createIconsSafe();
 
       loadMinuteChartData(stock.code);
     }
@@ -1428,7 +1437,7 @@
       if (tabKey === 'dividend') {
         renderDividendTab();
       }
-      lucide.createIcons();
+      createIconsSafe();
     }
 
     // -------------------------------------------------------------
