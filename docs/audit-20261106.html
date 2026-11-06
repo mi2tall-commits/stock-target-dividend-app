@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>점검 보고서 · stock-target-dividend-app · 2026-11-06</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#fff; --ink:#1d1d1f; --mute:#5f6368; --line:#e3e3e0; --hi:#b3261e; --md:#b26a00; --lo:#3c6e47; --acc:#1f4fa3; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.6 -apple-system, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+  main { max-width: 960px; margin: 0 auto; padding: 20px 14px 60px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 28px 0 10px; border-left: 4px solid var(--acc); padding-left: 8px; }
+  .sub { color: var(--mute); font-size: 13px; margin-bottom: 16px; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+  .concl { border-left: 5px solid var(--hi); }
+  .decide { border-left: 5px solid var(--md); }
+  .decide ol { margin: 6px 0 0; padding-left: 20px; }
+  .decide li { margin-bottom: 8px; }
+  .nums { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .num { flex: 1 1 120px; background: var(--bg); border-radius: 8px; padding: 8px 10px; text-align: center; }
+  .num b { display: block; font-size: 20px; }
+  .num span { font-size: 12px; color: var(--mute); }
+  table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 8px; vertical-align: top; text-align: left; }
+  th { background: #efefec; font-size: 13px; }
+  code { font-family: Consolas, "D2Coding", monospace; font-size: 12.5px; background: #f0f0ed; padding: 1px 4px; border-radius: 4px; word-break: break-all; }
+  .sev { display: inline-block; font-weight: 700; font-size: 12px; padding: 1px 8px; border-radius: 10px; color: #fff; white-space: nowrap; }
+  .high { background: var(--hi); } .medium { background: var(--md); } .low { background: var(--lo); }
+  .ok { color: var(--lo); font-weight: 700; } .wait { color: var(--md); font-weight: 700; }
+  ul.plain { margin: 6px 0; padding-left: 20px; }
+  /* 폰 폭: 표를 카드처럼 쌓는다 */
+  @media (max-width: 640px) {
+    table, thead, tbody, tr, th, td { display: block; }
+    thead { display: none; }
+    tr { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; padding: 6px 0; }
+    td { border: none; padding: 4px 12px; }
+    td::before { content: attr(data-k); display: block; font-size: 11.5px; color: var(--mute); font-weight: 700; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>주식 목표가·배당 앱 점검 보고서</h1>
+  <div class="sub">저장소 stock-target-dividend-app · 브랜치 audit/20261106 · 2026-11-06 · 코드 읽기와 자동 시험으로 확인(실제 GAS 배포·실행은 하지 않음)</div>
+
+  <div class="box concl">
+    <b>결론.</b> 확인된 문제 9건 중 7건을 코드로 고쳤고, 자동 시험 28개 중 25개가 통과합니다. 남은 3개는 주인 결정이 필요한 항목이라 "할 일"로 표시해 두었습니다.
+    가장 위험한 문제(GAS 주소만 알면 누구나 내 포트폴리오를 보고 고칠 수 있음)는 <b>아직 그대로</b>입니다. 접근 설정을 바꾸면 GitHub Pages의 시세 기능이 함께 멈추기 때문에 아래 1번을 정해 주셔야 합니다.
+    고친 코드는 아직 GAS에 올리지 않았습니다. 반영하려면 주인이 직접 <code>clasp push</code> 후 새 버전으로 배포해야 합니다.
+    <div class="nums">
+      <div class="num"><b>9</b><span>확인된 문제</span></div>
+      <div class="num"><b>3</b><span>심각(high)</span></div>
+      <div class="num"><b>7</b><span>코드 수정 커밋</span></div>
+      <div class="num"><b>15 → 0</b><span>실패 시험(수정 전 → 후)</span></div>
+    </div>
+  </div>
+
+  <div class="box decide">
+    <b>주인이 정할 것</b>
+    <ol>
+      <li><b>웹앱 공개 범위.</b> 지금은 "로그인 없이 누구나, 소유자 권한으로 실행"입니다.
+        추천: 시세 조회용 GAS와 내 데이터용 GAS를 <b>두 개로 나누기</b>. 시세용은 지금처럼 공개하고, 데이터용은 "나만(MYSELF)"으로 바꿉니다(약 20분, 돈 안 듦, 이전 배포로 되돌릴 수 있음).
+        대안: 하나로 두고 서버에서 접속한 사람 이메일이 소유자인지 확인하기. 다만 소유자 본인이 열 때 이메일이 실제로 보이는지는 GAS에서 직접 시험해 봐야 합니다.</li>
+      <li><b>GitHub Pages에서 클라우드 저장을 살릴지.</b> Code.js에 <code>doPost</code>가 없어서 그 화면의 클라우드 저장은 원래부터 한 번도 성공한 적이 없습니다. 살리려면 소유자만 아는 비밀 토큰을 정해 함께 넣어야 합니다. 안 살리면 GitHub Pages는 "이 기기에만 저장" 앱으로 두면 됩니다. 지금은 저장할 때마다 "클라우드 저장 실패" 경고가 뜨게 고쳐 두었습니다(사실대로 알리는 상태).</li>
+      <li><b>공개 코드에 들어 있는 실제 보유 내역</b>(금호건설 660주·평단 19,760원 등). 가상 숫자로 바꿀지, 저장소를 비공개로 돌릴지 정해 주세요. 예전 커밋 기록에도 남아 있어 코드만 고쳐서는 지워지지 않습니다.</li>
+      <li><b>매매 일지가 9KB를 넘을 때 보관 방법.</b> 지금은 넘으면 저장을 막고 경고만 띄웁니다(데이터는 이 기기에 남음). 오래 쓰려면 여러 칸으로 나눠 저장하거나 스프레드시트에 저장하도록 바꿔야 합니다.</li>
+    </ol>
+  </div>
+
+  <h2>문제와 조치 (심각한 순서)</h2>
+  <table>
+    <thead><tr><th>심각도</th><th>파일:줄</th><th>쉬운 설명</th><th>고친 내용 / 커밋</th><th>시험 결과</th></tr></thead>
+    <tbody>
+      <tr>
+        <td data-k="심각도"><span class="sev high">높음</span></td>
+        <td data-k="파일:줄"><code>appsscript.json:6</code><br><code>index.html:1022 외 5곳</code></td>
+        <td data-k="쉬운 설명">GAS 주소를 아는 사람이면 로그인 없이 내 종목·평단가·일지를 보고, 바꾸고, 초기화할 수 있습니다. 종목 id에 따옴표를 넣으면 내가 화면을 열 때 남의 스크립트가 실행되는 구멍도 있었습니다.</td>
+        <td data-k="고친 내용"><b>일부 수정.</b> 스크립트 주입 구멍을 막고(<code>jsArg()</code>), 전체 초기화 함수를 브라우저에서 부를 수 없게 이름을 바꿨습니다(<code>resetAllAppData_</code>). 접근 설정은 결정 1번 대기.<br>커밋 <code>f99f1ec</code></td>
+        <td data-k="시험 결과"><span class="ok">통과 2</span> · <span class="wait">할 일 1</span>(접근 설정)</td>
+      </tr>
+      <tr>
+        <td data-k="심각도"><span class="sev high">높음</span></td>
+        <td data-k="파일:줄"><code>Code.js:6</code><br><code>index.html:702</code></td>
+        <td data-k="쉬운 설명">GitHub Pages 화면의 클라우드 저장은 매번 실패하는데 화면에는 "저장되었습니다"가 떴습니다. GAS 화면에서도 서버 저장이 실패해 알 수 없었습니다.</td>
+        <td data-k="고친 내용"><b>알림 수정.</b> "이 기기에 저장 → 클라우드 저장 완료 / 실패"를 따로 알립니다. <code>doPost</code> 추가는 결정 2번 대기.<br>커밋 <code>c6ee897</code></td>
+        <td data-k="시험 결과"><span class="ok">통과 3</span> · <span class="wait">할 일 1</span>(doPost)</td>
+      </tr>
+      <tr>
+        <td data-k="심각도"><span class="sev high">높음</span></td>
+        <td data-k="파일:줄"><code>index.html:649</code></td>
+        <td data-k="쉬운 설명">보유 종목을 모두 지우고 새로고침하면 매매일지·관심종목까지 샘플 2건으로 바뀌고, 다음 저장 때 원래 일지가 사라졌습니다.</td>
+        <td data-k="고친 내용"><b>수정.</b> 저장된 값이 있으면 그대로 쓰고 빠진 칸만 채웁니다. 샘플은 처음 실행할 때만 씁니다.<br>커밋 <code>4b363a0</code></td>
+        <td data-k="시험 결과"><span class="ok">통과 3</span></td>
+      </tr>
+      <tr>
+        <td data-k="심각도"><span class="sev medium">중간</span></td>
+        <td data-k="파일:줄"><code>index.html:673</code><br><code>Code.js:293</code></td>
+        <td data-k="쉬운 설명">클라우드에 남은 예전 값이 이 기기의 최신 값을 덮어썼습니다. 일지가 9KB를 넘어 서버 저장이 실패하면 최근 일지가 사라졌습니다.</td>
+        <td data-k="고친 내용"><b>수정.</b> 저장 시각을 함께 기록하고, 서버 값이 더 새로울 때만 바꿉니다. 서버는 9KB를 넘으면 아무것도 쓰지 않고 실패를 알리며, 모두 저장된 뒤에만 시각을 올립니다. 시각이 없는 예전 데이터는 지금처럼 동작합니다.<br>커밋 <code>c6ee897</code></td>
+        <td data-k="시험 결과"><span class="ok">통과 5</span></td>
+      </tr>
+      <tr>
+        <td data-k="심각도"><span class="sev medium">중간</span></td>
+        <td data-k="파일:줄"><code>index.html:760</code></td>
+        <td data-k="쉬운 설명">시세를 못 받아오면 관심종목이 모두 "50,000원", 보유종목은 평단가가 현재가처럼 보이고 손익 0원으로 나왔습니다.</td>
+        <td data-k="고친 내용"><b>수정.</b> 가짜 숫자 대신 "시세 조회 실패 / 시세 대기"를 보여 주고, 손익·평가액은 "-"로 표시합니다.<br>커밋 <code>495a905</code></td>
+        <td data-k="시험 결과"><span class="ok">통과 3</span></td>
+      </tr>
+      <tr>
+        <td data-k="심각도"><span class="sev low">낮음</span></td>
+        <td data-k="파일:줄"><code>Code.js:9</code></td>
+        <td data-k="쉬운 설명">누구나 부를 수 있는 시세 주소에 종목 수 제한이 없어, 요청 몇 번으로 하루 호출 한도를 바닥낼 수 있었습니다.</td>
+        <td data-k="고친 내용"><b>수정.</b> 중복을 없애고 한 번에 최대 60종목까지만 처리합니다. 캐시·병렬 호출은 넣지 않았습니다.<br>커밋 <code>0587462</code></td>
+        <td data-k="시험 결과"><span class="ok">통과 2</span></td>
+      </tr>
+      <tr>
+        <td data-k="심각도"><span class="sev low">낮음</span></td>
+        <td data-k="파일:줄"><code>Code.js:35</code></td>
+        <td data-k="쉬운 설명">영문이 섞인 새 종목코드(예: 0091C0)는 시세와 분봉이 늘 "불러올 수 없음"이었습니다.</td>
+        <td data-k="고친 내용"><b>수정.</b> 숫자·영문 대문자 6자리를 받습니다(소문자는 대문자로 바꿈).<br>커밋 <code>e7f1aab</code></td>
+        <td data-k="시험 결과"><span class="ok">통과 2</span></td>
+      </tr>
+      <tr>
+        <td data-k="심각도"><span class="sev low">낮음</span></td>
+        <td data-k="파일:줄"><code>index.html:527</code><br><code>Code.js:205</code></td>
+        <td data-k="쉬운 설명">공개 저장소에 실제 보유 종목·평단가·수량이 그대로 적혀 있습니다. 비밀키·비밀번호는 커밋되어 있지 않습니다(GAS 주소만 있음).</td>
+        <td data-k="고친 내용"><b>안 고침.</b> 결정 3번 대기.</td>
+        <td data-k="시험 결과"><span class="wait">할 일 1</span></td>
+      </tr>
+      <tr>
+        <td data-k="심각도"><span class="sev low">낮음</span></td>
+        <td data-k="파일:줄"><code>index.html:12</code></td>
+        <td data-k="쉬운 설명">아이콘·차트 라이브러리를 "항상 최신판"으로 불러와서, 외부 업데이트 한 번에 앱 전체가 멈출 수 있었습니다.</td>
+        <td data-k="고친 내용"><b>수정.</b> chart.js 4.6.1, lucide 1.69.0으로 고정(오늘 최신판과 같은 버전). 아이콘을 못 불러와도 화면 그리기가 계속됩니다.<br>커밋 <code>3a115ab</code></td>
+        <td data-k="시험 결과"><span class="ok">통과 2</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>시험 결과</h2>
+  <div class="box">
+    시험 파일: <code>tests/audit/audit.test.mjs</code>(28개), 실행: <code>node --test tests/audit/audit.test.mjs</code><br>
+    화면 코드(index.html)와 서버 코드(Code.js)를 가짜 브라우저·가짜 GAS 환경에서 돌려 확인합니다. 외부 접속은 하지 않습니다.
+    <ul class="plain">
+      <li>고치기 전: 통과 10 · <b>실패 15</b> · 할 일 3</li>
+      <li>고친 뒤: <b>통과 25</b> · 실패 0 · 할 일 3 (주인 결정 항목: 접근 설정, doPost, 실제 보유 내역)</li>
+      <li>저장소에 원래 있던 시험·빌드는 없습니다.</li>
+    </ul>
+  </div>
+
+  <h2>확인 못 한 것</h2>
+  <div class="box">
+    <ul class="plain">
+      <li>실제 GAS에 배포해 보지 않았습니다. 고친 코드가 실제 구글 서버에서 그대로 도는지는 주인이 배포한 뒤 확인해야 합니다.</li>
+      <li>실제 브라우저에서 화면을 열어 보지 않았습니다. 화면 그리기는 가짜 환경에서만 시험했습니다.</li>
+      <li>네이버 시세 API가 영문 섞인 종목코드(0091C0 등)에 실제로 답하는지는 확인하지 못했습니다.</li>
+      <li>PropertiesService 9KB 한도는 공식 한도를 기준으로 9,000바이트에서 막도록 했고, 실제 한도에 걸리는 순간은 재현하지 못했습니다.</li>
+      <li>상단 요약 카드(총 평가액 등)는 시세가 없을 때 여전히 평단가로 계산합니다. 카드별 표시만 고쳤습니다.</li>
+      <li>CDN 파일의 무결성 해시(SRI)는 넣지 않았습니다. Tailwind CDN(<code>cdn.tailwindcss.com</code>)도 버전이 고정되어 있지 않습니다.</li>
+      <li>서로 다른 기기의 시계가 크게 어긋나면 "더 새로운 쪽" 판단이 틀릴 수 있습니다.</li>
+    </ul>
+  </div>
+</main>
+</body>
+</html>
