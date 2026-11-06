@@ -6,7 +6,7 @@
 function doGet(e) {
   // GitHub Pages 등 외부 웹에서 실시간 시세 API로 호출 시 JSON 응답 반환
   if (e && e.parameter && e.parameter.action === 'price') {
-    var symbols = (e.parameter.symbols || '').split(',').filter(function(s) { return s.trim(); });
+    var symbols = normalizeSymbolList_(e.parameter.symbols || '');
     var results = fetchBatchStockPrices(symbols);
     return ContentService.createTextOutput(JSON.stringify(results))
       .setMimeType(ContentService.MimeType.JSON);
@@ -175,6 +175,23 @@ function fetchMinuteChartData(symbol) {
     Logger.log('Naver minute chart fetch error for ' + cleanSymbol + ': ' + e);
     return { success: false, symbol: cleanSymbol, message: '분봉 데이터를 불러오는 중 오류가 발생했습니다.' };
   }
+}
+
+// 로그인 없이 부를 수 있는 시세 주소이므로, 한 번에 처리하는 종목 수를 제한한다.
+// (종목 1개당 UrlFetch 2회. 제한이 없으면 요청 한 번으로 일일 할당량·6분 실행 한도를 다 쓸 수 있다)
+var MAX_PRICE_SYMBOLS = 60;
+
+function normalizeSymbolList_(raw) {
+  var seen = {};
+  var out = [];
+  var parts = String(raw).split(',');
+  for (var i = 0; i < parts.length && out.length < MAX_PRICE_SYMBOLS; i++) {
+    var s = parts[i].trim();
+    if (!s || seen[s]) continue;
+    seen[s] = true;
+    out.push(s);
+  }
+  return out;
 }
 
 // 여러 종목 일괄 시세 갱신
