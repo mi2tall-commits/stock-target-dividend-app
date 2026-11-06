@@ -30,9 +30,10 @@ function doGet(e) {
 // 네이버 금융 모바일 API를 통한 국내 주식 실시간/최신 시세 조회
 function fetchStockPrice(symbol) {
   if (!symbol) return { success: false, message: '종목 코드가 없습니다.' };
-  var cleanSymbol = symbol.trim().replace(/[^0-9a-zA-Z]/g, '');
-  
-  if (/^\d{6}$/.test(cleanSymbol)) {
+  var cleanSymbol = symbol.trim().toUpperCase().replace(/[^0-9A-Z]/g, '');
+
+  // KRX 단축코드는 숫자 6자리 외에 영문이 섞인 6자리(예: 0091C0)도 있다
+  if (/^[0-9A-Z]{6}$/.test(cleanSymbol)) {
     try {
       var url = 'https://m.stock.naver.com/api/stock/' + cleanSymbol + '/basic';
       var response = UrlFetchApp.fetch(url, {
@@ -111,9 +112,9 @@ function fetchStockPrice(symbol) {
 // 당일 1분봉(분 단위 체결가/거래량) 조회 - 네이버 fchart API 활용
 function fetchMinuteChartData(symbol) {
   if (!symbol) return { success: false, message: '종목 코드가 없습니다.' };
-  var cleanSymbol = symbol.trim().replace(/[^0-9a-zA-Z]/g, '');
+  var cleanSymbol = symbol.trim().toUpperCase().replace(/[^0-9A-Z]/g, '');
 
-  if (!/^\d{6}$/.test(cleanSymbol)) {
+  if (!/^[0-9A-Z]{6}$/.test(cleanSymbol)) {
     return { success: false, symbol: cleanSymbol, message: '유효하지 않은 종목 코드입니다.' };
   }
 
